@@ -8,11 +8,15 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Three.js and Dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <!-- Modern Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
 
     <style>
         body { margin: 0; overflow: hidden; background-color: #1a1a1a; }
@@ -42,18 +46,23 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><line x1="12" y1="22" x2="12" y2="12"></line></svg>
                     Model Viewer
                 </h1>
-                <p class="text-sm text-gray-400 mt-1">Upload Blockbench FBX & Textures</p>
+                <p class="text-sm text-gray-400 mt-1">Upload Blockbench Models & Textures</p>
             </div>
 
             <!-- Step 1: Model Upload -->
             <div class="flex flex-col gap-3">
-                <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">1. Load Model (FBX)</h2>
+                <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">1. Load Model</h2>
+                
+                <div class="bg-indigo-900/30 border border-indigo-500/30 rounded-lg p-3 text-xs text-indigo-200 shadow-inner">
+                    <strong>Pro Tip:</strong> For Blockbench, go to <em>File > Export > Export glTF</em>. The <strong>.glb</strong> format works perfectly on the web!
+                </div>
+
                 <label for="fbx-upload" class="cursor-pointer group flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-600 rounded-xl hover:border-indigo-500 hover:bg-gray-800/50 transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-indigo-400 mb-2 transition-colors"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    <span class="text-sm font-medium text-gray-300">Choose FBX File</span>
-                    <span class="text-xs text-gray-500 mt-1">.fbx format</span>
+                    <span class="text-sm font-medium text-gray-300">Choose Model File</span>
+                    <span class="text-xs text-gray-500 mt-1">.glb, .gltf, or .fbx</span>
                 </label>
-                <input type="file" id="fbx-upload" accept=".fbx" class="hidden" />
+                <input type="file" id="fbx-upload" accept=".fbx,.glb,.gltf" class="hidden" />
             </div>
 
             <!-- Step 2: Texture Upload -->
@@ -65,6 +74,28 @@
                     <span class="text-xs text-gray-500 mt-1">PNG or JPG (Pixel Art friendly)</span>
                 </label>
                 <input type="file" id="texture-upload" accept="image/png, image/jpeg" class="hidden" />
+            </div>
+
+            <!-- Step 3: Roblox Optimizer -->
+            <div class="flex flex-col gap-3">
+                <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">3. Optimize for Roblox</h2>
+                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700 flex flex-col gap-4">
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 flex justify-between">
+                            <span>Voxel Size (Grid)</span>
+                            <span id="voxel-size-display">0.2</span>
+                        </label>
+                        <input type="range" id="voxel-size" min="0.05" max="1.0" step="0.05" value="0.2" class="w-full accent-indigo-500 cursor-pointer">
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="voxelize-btn" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors text-sm shadow-lg shadow-indigo-500/20">
+                            Voxelize Model
+                        </button>
+                        <button id="toggle-view-btn" class="hidden flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors text-sm border border-gray-600">
+                            Show Original
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Controls -->
@@ -97,10 +128,20 @@
         <span id="toast-message" class="font-medium text-sm">Notification message</span>
     </div>
 
-    <script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
         let scene, camera, renderer, controls;
         let currentModel = null;
         let toastTimeout;
+        
+        // Voxelization state
+        let currentImageData = null; 
+        let voxelMesh = null;
+        let showingVoxels = false;
 
         // Custom notification system (replaces alert)
         function showNotification(message, type = 'success') {
@@ -131,19 +172,17 @@
             }, 3500);
         }
 
-        window.onload = function () {
-            initThreeJS();
-            setupEventListeners();
-        };
+        initThreeJS();
+        setupEventListeners();
 
         function initThreeJS() {
             const container = document.getElementById('canvas-container');
 
             // Scene setup
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1e1e24); // Dark background
+            scene.background = new THREE.Color(0x1e1e24); 
             
-            // Grid helper to ground the model
+            // Grid helper
             const gridHelper = new THREE.GridHelper(50, 50, 0x444444, 0x222222);
             scene.add(gridHelper);
 
@@ -155,12 +194,11 @@
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
-            // In Three r128, to render textures accurately
-            renderer.outputEncoding = THREE.sRGBEncoding; 
+            renderer.outputColorSpace = THREE.SRGBColorSpace; 
             container.appendChild(renderer.domElement);
 
             // Orbit Controls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.target.set(0, 0, 0);
@@ -192,54 +230,137 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            controls.update(); // required if controls.enableDamping or controls.autoRotate are set
+            controls.update(); 
             renderer.render(scene, camera);
         }
 
         function setupEventListeners() {
-            document.getElementById('fbx-upload').addEventListener('change', handleFBXUpload);
+            document.getElementById('fbx-upload').addEventListener('change', handleModelUpload);
             document.getElementById('texture-upload').addEventListener('change', handleTextureUpload);
             document.getElementById('reset-cam-btn').addEventListener('click', () => {
                 camera.position.set(15, 10, 15);
                 controls.target.set(0, 0, 0);
                 controls.update();
             });
+            
+            // Roblox Optimizer specific events
+            document.getElementById('voxel-size').addEventListener('input', (e) => {
+                document.getElementById('voxel-size-display').textContent = e.target.value;
+            });
+            document.getElementById('voxelize-btn').addEventListener('click', voxelizeModel);
+            document.getElementById('toggle-view-btn').addEventListener('click', toggleView);
         }
 
-        function handleFBXUpload(event) {
+        // --- Helper for Roblox Optimizer to read image data ---
+        function getCanvasColor(u, v, imageData) {
+            let x = Math.floor(u * imageData.width);
+            let y = Math.floor((1 - v) * imageData.height); // Three.js UV V is inverted
+            
+            x = Math.max(0, Math.min(x, imageData.width - 1));
+            y = Math.max(0, Math.min(y, imageData.height - 1));
+            
+            const index = (y * imageData.width + x) * 4;
+            return {
+                r: imageData.data[index] / 255,
+                g: imageData.data[index + 1] / 255,
+                b: imageData.data[index + 2] / 255,
+                a: imageData.data[index + 3] / 255
+            };
+        }
+
+        function clearVoxels() {
+            if (voxelMesh) {
+                scene.remove(voxelMesh);
+                voxelMesh = null;
+                showingVoxels = false;
+                document.getElementById('toggle-view-btn').classList.add('hidden');
+            }
+        }
+
+        async function handleModelUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            showNotification('Parsing FBX Model...', 'success');
+            const extension = file.name.split('.').pop().toLowerCase();
+            const isGLTF = extension === 'glb' || extension === 'gltf';
+            const isFBX = extension === 'fbx';
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const arrayBuffer = e.target.result;
-                const loader = new THREE.FBXLoader();
-                
-                try {
-                    // Parse FBX array buffer
-                    const object = loader.parse(arrayBuffer, '');
+            if (!isGLTF && !isFBX) {
+                showNotification('Unsupported file type. Use FBX, GLB, or GLTF.', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            showNotification('Loading Model...', 'success');
+
+            try {
+                if (isGLTF) {
+                    const objectUrl = URL.createObjectURL(file);
+                    const loader = new GLTFLoader();
+                    loader.load(
+                        objectUrl,
+                        function (gltf) {
+                            setupModel(gltf.scene);
+                            URL.revokeObjectURL(objectUrl);
+                        },
+                        undefined,
+                        function (error) {
+                            console.error("GLTF Load Error:", error);
+                            showNotification('Error loading GLTF.', 'error');
+                            URL.revokeObjectURL(objectUrl);
+                        }
+                    );
+                } else if (isFBX) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
                     
-                    // Remove old model if it exists
-                    if (currentModel) {
-                        scene.remove(currentModel);
+                    const magic = 'Kaydara FBX Binary  ';
+                    let isBinary = true;
+                    for (let i = 0; i < magic.length; i++) {
+                        if (uint8Array[i] !== magic.charCodeAt(i)) {
+                            isBinary = false;
+                            break;
+                        }
                     }
 
-                    currentModel = object;
-                    normalizeModel(currentModel);
-                    scene.add(currentModel);
+                    let bufferToParse = arrayBuffer;
 
-                    showNotification('FBX Loaded Successfully!', 'success');
-                } catch (error) {
-                    console.error(error);
-                    showNotification('Error parsing FBX file. Check console.', 'error');
+                    // Fix for Blockbench ASCII FBX
+                    if (!isBinary) {
+                        let text = await file.text();
+                        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                        bufferToParse = new TextEncoder().encode(text).buffer;
+                    }
+
+                    const loader = new FBXLoader();
+                    const object = loader.parse(bufferToParse, '');
+                    setupModel(object);
                 }
-                
-                // Reset input so the same file can be uploaded again if needed
+            } catch (error) {
+                console.error("Model Load Error:", error);
+                if (isFBX) {
+                    showNotification('FBX is too malformed. Try exporting as GLTF/GLB instead!', 'error');
+                } else {
+                    showNotification('Failed to process file.', 'error');
+                }
+            } finally {
                 event.target.value = ''; 
-            };
-            reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function setupModel(object) {
+            if (currentModel) {
+                scene.remove(currentModel);
+            }
+            
+            clearVoxels(); // Clear out previous voxel optimizations
+            
+            currentModel = object;
+            normalizeModel(currentModel);
+            scene.add(currentModel);
+            
+            currentModel.visible = true;
+            showNotification('Model Loaded Successfully!', 'success');
         }
 
         function handleTextureUpload(event) {
@@ -247,28 +368,40 @@
             if (!file) return;
             
             if (!currentModel) {
-                showNotification('Please load an FBX model first.', 'error');
+                showNotification('Please load a model first.', 'error');
                 event.target.value = '';
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const dataUrl = e.target.result;
-                const textureLoader = new THREE.TextureLoader();
-                
-                textureLoader.load(dataUrl, (texture) => {
-                    // Critical for Blockbench pixel art textures: 
-                    // Use NearestFilter to prevent blurring
+            const objectUrl = URL.createObjectURL(file);
+            
+            // --- Store image data for Roblox Optimizer ---
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                currentImageData = ctx.getImageData(0, 0, img.width, img.height);
+            };
+            img.src = objectUrl;
+            
+            clearVoxels(); // Reset optimization view if new texture applied
+            if (currentModel) currentModel.visible = true;
+
+            // --- Apply to visual model ---
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load(
+                objectUrl, 
+                (texture) => {
                     texture.magFilter = THREE.NearestFilter;
                     texture.minFilter = THREE.NearestFilter;
-                    texture.encoding = THREE.sRGBEncoding;
+                    texture.colorSpace = THREE.SRGBColorSpace; 
 
-                    // Apply texture to all meshes in the model
                     let appliedCount = 0;
                     currentModel.traverse((child) => {
                         if (child.isMesh) {
-                            // Some meshes have multiple materials in an array
                             if (Array.isArray(child.material)) {
                                 child.material.forEach(mat => {
                                     mat.map = texture;
@@ -287,29 +420,174 @@
                     } else {
                         showNotification('Model has no meshes to apply texture to.', 'error');
                     }
-                }, undefined, (err) => {
-                    console.error("Texture Load Error", err);
+                    
+                    URL.revokeObjectURL(objectUrl);
+                    event.target.value = '';
+                }, 
+                undefined, 
+                (error) => {
+                    console.error("Texture Load Error:", error);
                     showNotification('Error loading texture.', 'error');
-                });
-                
-                // Reset input
-                event.target.value = '';
-            };
-            reader.readAsDataURL(file);
+                    URL.revokeObjectURL(objectUrl);
+                    event.target.value = '';
+                }
+            );
         }
 
-        // Centers and scales the model so it fits nicely in the view
+        // --- Roblox Voxelization Logic ---
+        function voxelizeModel() {
+            if (!currentModel) {
+                showNotification('Load a model first.', 'error');
+                return;
+            }
+            if (!currentImageData) {
+                showNotification('Apply a texture first to analyze colors.', 'error');
+                return;
+            }
+
+            showNotification('Optimizing... (This may take a moment)', 'success');
+            
+            // Slight delay so the UI thread can paint the notification
+            setTimeout(() => {
+                const voxelSize = parseFloat(document.getElementById('voxel-size').value);
+                const voxels = new Map();
+
+                currentModel.traverse((mesh) => {
+                    if (mesh.isMesh) {
+                        mesh.updateMatrixWorld(true);
+                        
+                        // Convert geometry to non-indexed to read raw triangles easily
+                        let geom = mesh.geometry;
+                        if (geom.index) {
+                            geom = geom.toNonIndexed();
+                        }
+                        
+                        const pos = geom.attributes.position;
+                        const uv = geom.attributes.uv;
+                        
+                        if (!pos || !uv) return;
+
+                        // Figure out how many points to mathematically sweep/sample over each face
+                        const samplesPerArea = 4 / (voxelSize * voxelSize);
+
+                        for (let i = 0; i < pos.count; i += 3) {
+                            // Triangle corners in world space
+                            const a = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+                            const b = new THREE.Vector3().fromBufferAttribute(pos, i + 1).applyMatrix4(mesh.matrixWorld);
+                            const c = new THREE.Vector3().fromBufferAttribute(pos, i + 2).applyMatrix4(mesh.matrixWorld);
+                            
+                            // UV coordinates of the triangle
+                            const uvA = new THREE.Vector2().fromBufferAttribute(uv, i);
+                            const uvB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
+                            const uvC = new THREE.Vector2().fromBufferAttribute(uv, i + 2);
+                            
+                            const triangle = new THREE.Triangle(a, b, c);
+                            const area = triangle.getArea();
+                            const numSamples = Math.max(1, Math.floor(area * samplesPerArea));
+                            
+                            // Random uniform sweeping across the face
+                            for(let s = 0; s < numSamples; s++) {
+                                let r1 = Math.random(), r2 = Math.random();
+                                if(r1 + r2 > 1) { r1 = 1 - r1; r2 = 1 - r2; }
+                                const r3 = 1 - r1 - r2;
+                                
+                                // Interpolated 3D Position
+                                const px = a.x*r1 + b.x*r2 + c.x*r3;
+                                const py = a.y*r1 + b.y*r2 + c.y*r3;
+                                const pz = a.z*r1 + b.z*r2 + c.z*r3;
+                                
+                                // Interpolated 2D Texture coordinate
+                                const currUvX = uvA.x*r1 + uvB.x*r2 + uvC.x*r3;
+                                const currUvY = uvA.y*r1 + uvB.y*r2 + uvC.y*r3;
+                                
+                                // Read exact color of the texture at this specific UV
+                                const color = getCanvasColor(currUvX, currUvY, currentImageData);
+                                if(color.a < 0.1) continue; // Skip empty/transparent texture gaps
+                                
+                                // Snap coordinate to the Roblox grid size
+                                const sx = Math.floor(px / voxelSize) * voxelSize;
+                                const sy = Math.floor(py / voxelSize) * voxelSize;
+                                const sz = Math.floor(pz / voxelSize) * voxelSize;
+                                const key = `${sx.toFixed(3)},${sy.toFixed(3)},${sz.toFixed(3)}`;
+                                
+                                // Store a single solid color cube here
+                                if (!voxels.has(key)) {
+                                    voxels.set(key, { 
+                                        position: new THREE.Vector3(sx + voxelSize/2, sy + voxelSize/2, sz + voxelSize/2), 
+                                        color: new THREE.Color(color.r, color.g, color.b) 
+                                    });
+                                }
+                            }
+                        }
+                    }
+                });
+
+                if (voxels.size === 0) {
+                    showNotification('No valid textured surfaces found to optimize.', 'error');
+                    return;
+                }
+
+                // Remove previous optimization
+                if (voxelMesh) {
+                    scene.remove(voxelMesh);
+                }
+
+                // Render as highly efficient InstancedMesh instead of thousands of individual meshes
+                const boxGeom = new THREE.BoxGeometry(voxelSize, voxelSize, voxelSize);
+                const boxMat = new THREE.MeshLambertMaterial();
+                voxelMesh = new THREE.InstancedMesh(boxGeom, boxMat, voxels.size);
+                
+                let idx = 0;
+                const matrix = new THREE.Matrix4();
+                for (const voxel of voxels.values()) {
+                    matrix.setPosition(voxel.position);
+                    voxelMesh.setMatrixAt(idx, matrix);
+                    voxelMesh.setColorAt(idx, voxel.color);
+                    idx++;
+                }
+                
+                voxelMesh.instanceMatrix.needsUpdate = true;
+                if (voxelMesh.instanceColor) voxelMesh.instanceColor.needsUpdate = true;
+                
+                scene.add(voxelMesh);
+                
+                // Switch view
+                currentModel.visible = false;
+                showingVoxels = true;
+                
+                document.getElementById('toggle-view-btn').classList.remove('hidden');
+                document.getElementById('toggle-view-btn').textContent = 'Show Original';
+                
+                showNotification(`Optimized into ${voxels.size} solid cubes!`, 'success');
+
+            }, 50); 
+        }
+
+        function toggleView() {
+            if (!voxelMesh) return;
+            
+            if (showingVoxels) {
+                voxelMesh.visible = false;
+                currentModel.visible = true;
+                document.getElementById('toggle-view-btn').textContent = 'Show Roblox Version';
+                showingVoxels = false;
+            } else {
+                voxelMesh.visible = true;
+                currentModel.visible = false;
+                document.getElementById('toggle-view-btn').textContent = 'Show Original Model';
+                showingVoxels = true;
+            }
+        }
+
         function normalizeModel(model) {
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
 
-            // Center the model's position
             model.position.x += (model.position.x - center.x);
-            model.position.y += (model.position.y - center.y) + (size.y / 2); // Put bottom at y=0
+            model.position.y += (model.position.y - center.y) + (size.y / 2); 
             model.position.z += (model.position.z - center.z);
 
-            // Scale to a maximum dimension of roughly 10 units
             const maxDim = Math.max(size.x, size.y, size.z);
             if (maxDim > 0) {
                 const scale = 10 / maxDim;
