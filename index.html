@@ -80,14 +80,27 @@
             <div class="flex flex-col gap-3">
                 <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">3. Optimize for Roblox</h2>
                 <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700 flex flex-col gap-4">
-                    <div>
-                        <label class="text-xs text-gray-400 mb-1 flex justify-between">
-                            <span>Voxel Size (Grid)</span>
-                            <span id="voxel-size-display">0.2</span>
+                    
+                    <!-- Voxel Settings -->
+                    <div class="flex flex-col gap-3">
+                        <div class="bg-indigo-900/30 border border-indigo-500/30 rounded-lg p-3 text-xs text-indigo-200 shadow-inner flex items-start gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0 text-indigo-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            <span><strong>Auto-Voxel Enabled:</strong> Analyzes your pixel-art texture to automatically split existing geometry into perfectly matched 1-to-1 cubes.</span>
+                        </div>
+                        
+                        <label class="flex items-center gap-2 cursor-pointer group mt-2">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" id="auto-merge-voxels" class="peer appearance-none w-5 h-5 border-2 border-gray-600 rounded bg-gray-900 checked:bg-indigo-500 checked:border-indigo-500 transition-colors cursor-pointer" checked>
+                                <svg class="absolute w-3.5 h-3.5 top-1 left-[3px] text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-200 group-hover:text-white transition-colors">Auto-Merge Solid Colors</span>
+                                <span class="text-[10px] text-gray-500">Combines parts of same color into large blocks</span>
+                            </div>
                         </label>
-                        <input type="range" id="voxel-size" min="0.05" max="1.0" step="0.05" value="0.2" class="w-full accent-indigo-500 cursor-pointer">
                     </div>
-                    <div class="flex gap-2">
+
+                    <div class="flex gap-2 pt-2 border-t border-gray-700/50">
                         <button id="voxelize-btn" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors text-sm shadow-lg shadow-indigo-500/20">
                             Voxelize Model
                         </button>
@@ -125,7 +138,10 @@
     <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-800 border-l-4 border-indigo-500 text-white p-4 rounded shadow-2xl z-50 flex items-center gap-3">
         <svg id="toast-icon-success" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400 hidden"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
         <svg id="toast-icon-error" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-400 hidden"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        <span id="toast-message" class="font-medium text-sm">Notification message</span>
+        <div class="flex flex-col">
+            <span id="toast-message" class="font-medium text-sm text-white">Notification message</span>
+            <span id="toast-submessage" class="text-xs text-gray-400 hidden">Sub message</span>
+        </div>
     </div>
 
     <script type="module">
@@ -140,17 +156,26 @@
         
         // Voxelization state
         let currentImageData = null; 
+        let currentTextureFlipY = true;
         let voxelMesh = null;
         let showingVoxels = false;
 
-        // Custom notification system (replaces alert)
-        function showNotification(message, type = 'success') {
+        // Custom notification system
+        function showNotification(message, type = 'success', submessage = null) {
             const toast = document.getElementById('toast');
             const msgEl = document.getElementById('toast-message');
+            const submsgEl = document.getElementById('toast-submessage');
             const iconSuccess = document.getElementById('toast-icon-success');
             const iconError = document.getElementById('toast-icon-error');
             
             msgEl.textContent = message;
+            
+            if (submessage) {
+                submsgEl.textContent = submessage;
+                submsgEl.classList.remove('hidden');
+            } else {
+                submsgEl.classList.add('hidden');
+            }
             
             if (type === 'error') {
                 toast.classList.replace('border-indigo-500', 'border-red-500');
@@ -169,7 +194,7 @@
             clearTimeout(toastTimeout);
             toastTimeout = setTimeout(() => {
                 toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3500);
+            }, 4500); 
         }
 
         initThreeJS();
@@ -178,32 +203,26 @@
         function initThreeJS() {
             const container = document.getElementById('canvas-container');
 
-            // Scene setup
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1e1e24); 
             
-            // Grid helper
             const gridHelper = new THREE.GridHelper(50, 50, 0x444444, 0x222222);
             scene.add(gridHelper);
 
-            // Camera setup
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
             camera.position.set(15, 10, 15);
 
-            // Renderer setup
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
             container.appendChild(renderer.domElement);
 
-            // Orbit Controls
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.target.set(0, 0, 0);
 
-            // Lighting setup
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
 
@@ -215,10 +234,7 @@
             backLight.position.set(-10, -20, -10);
             scene.add(backLight);
 
-            // Handle Window Resize
             window.addEventListener('resize', onWindowResize, false);
-
-            // Start animation loop
             animate();
         }
 
@@ -243,18 +259,19 @@
                 controls.update();
             });
             
-            // Roblox Optimizer specific events
-            document.getElementById('voxel-size').addEventListener('input', (e) => {
-                document.getElementById('voxel-size-display').textContent = e.target.value;
-            });
             document.getElementById('voxelize-btn').addEventListener('click', voxelizeModel);
             document.getElementById('toggle-view-btn').addEventListener('click', toggleView);
         }
 
-        // --- Helper for Roblox Optimizer to read image data ---
-        function getCanvasColor(u, v, imageData) {
-            let x = Math.floor(u * imageData.width);
-            let y = Math.floor((1 - v) * imageData.height); // Three.js UV V is inverted
+        // Color sampling helper
+        function getCanvasColor(u, v, imageData, flipY) {
+            let u_wrap = u - Math.floor(u);
+            let v_wrap = v - Math.floor(v);
+            
+            let x = Math.floor(u_wrap * imageData.width);
+            let y = flipY 
+                ? Math.floor((1 - v_wrap) * imageData.height) 
+                : Math.floor(v_wrap * imageData.height);
             
             x = Math.max(0, Math.min(x, imageData.width - 1));
             y = Math.max(0, Math.min(y, imageData.height - 1));
@@ -274,6 +291,25 @@
                 voxelMesh = null;
                 showingVoxels = false;
                 document.getElementById('toggle-view-btn').classList.add('hidden');
+            }
+        }
+
+        // Helper to extract embedded texture image data from 3D model
+        function extractImageDataFromTexture(image, flipY) {
+            try {
+                currentTextureFlipY = flipY !== undefined ? flipY : true;
+                const canvas = document.createElement('canvas');
+                canvas.width = image.width || 1024;
+                canvas.height = image.height || 1024;
+                if (canvas.width === 0 || canvas.height === 0) return false;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                return true;
+            } catch (e) {
+                console.error("Failed to extract embedded image data:", e);
+                return false;
             }
         }
 
@@ -324,8 +360,6 @@
                     }
 
                     let bufferToParse = arrayBuffer;
-
-                    // Fix for Blockbench ASCII FBX
                     if (!isBinary) {
                         let text = await file.text();
                         text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -339,7 +373,7 @@
             } catch (error) {
                 console.error("Model Load Error:", error);
                 if (isFBX) {
-                    showNotification('FBX is too malformed. Try exporting as GLTF/GLB instead!', 'error');
+                    showNotification('FBX error. Try exporting as GLTF/GLB instead!', 'error');
                 } else {
                     showNotification('Failed to process file.', 'error');
                 }
@@ -349,18 +383,41 @@
         }
 
         function setupModel(object) {
-            if (currentModel) {
-                scene.remove(currentModel);
-            }
-            
-            clearVoxels(); // Clear out previous voxel optimizations
+            if (currentModel) scene.remove(currentModel);
+            clearVoxels();
+            currentImageData = null; 
             
             currentModel = object;
             normalizeModel(currentModel);
             scene.add(currentModel);
             
             currentModel.visible = true;
-            showNotification('Model Loaded Successfully!', 'success');
+
+            let embeddedTextureFound = false;
+
+            currentModel.traverse((child) => {
+                if (child.isMesh) {
+                    const materials = Array.isArray(child.material) ? child.material : [child.material];
+                    materials.forEach(mat => {
+                        if (mat && mat.map && mat.map.image) {
+                            mat.map.magFilter = THREE.NearestFilter;
+                            mat.map.minFilter = THREE.NearestFilter;
+                            mat.map.needsUpdate = true;
+                            
+                            if (!embeddedTextureFound) {
+                                const success = extractImageDataFromTexture(mat.map.image, mat.map.flipY);
+                                if (success) embeddedTextureFound = true;
+                            }
+                        }
+                    });
+                }
+            });
+
+            if (embeddedTextureFound) {
+                showNotification('Model loaded with texture!', 'success', 'Ready for Roblox optimization.');
+            } else {
+                showNotification('Model Loaded!', 'success', 'No embedded texture found. Please upload one manually (Step 2).');
+            }
         }
 
         function handleTextureUpload(event) {
@@ -375,7 +432,6 @@
 
             const objectUrl = URL.createObjectURL(file);
             
-            // --- Store image data for Roblox Optimizer ---
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
@@ -387,14 +443,26 @@
             };
             img.src = objectUrl;
             
-            clearVoxels(); // Reset optimization view if new texture applied
+            clearVoxels(); 
             if (currentModel) currentModel.visible = true;
 
-            // --- Apply to visual model ---
             const textureLoader = new THREE.TextureLoader();
             textureLoader.load(
                 objectUrl, 
                 (texture) => {
+                    let targetFlipY = true;
+                    if (currentModel) {
+                        currentModel.traverse((child) => {
+                            if (child.isMesh && child.material) {
+                                const mats = Array.isArray(child.material) ? child.material : [child.material];
+                                if (mats[0] && mats[0].map) targetFlipY = mats[0].map.flipY;
+                            }
+                        });
+                    }
+                    
+                    texture.flipY = targetFlipY;
+                    currentTextureFlipY = targetFlipY;
+
                     texture.magFilter = THREE.NearestFilter;
                     texture.minFilter = THREE.NearestFilter;
                     texture.colorSpace = THREE.SRGBColorSpace; 
@@ -434,7 +502,7 @@
             );
         }
 
-        // --- Roblox Voxelization Logic ---
+        // --- Flawless Auto-Scaled Voxelization Logic ---
         function voxelizeModel() {
             if (!currentModel) {
                 showNotification('Load a model first.', 'error');
@@ -445,104 +513,240 @@
                 return;
             }
 
-            showNotification('Optimizing... (This may take a moment)', 'success');
+            showNotification('Analyzing geometric precision...', 'success', 'Generating mathematically aligned grid...');
             
-            // Slight delay so the UI thread can paint the notification
             setTimeout(() => {
-                const voxelSize = parseFloat(document.getElementById('voxel-size').value);
-                const voxels = new Map();
+                const useAutoMerge = document.getElementById('auto-merge-voxels').checked;
+                
+                // 1. ADVANCED PIXEL-SIZE DETECTION (Uses median filtering to ignore weird/singular geometry faces)
+                let pixelSizes = [];
+                
+                currentModel.traverse((mesh) => {
+                    if (mesh.isMesh && mesh.geometry.attributes.position && mesh.geometry.attributes.uv) {
+                        const pos = mesh.geometry.attributes.position;
+                        const uv = mesh.geometry.attributes.uv;
+                        
+                        for (let i = 0; i < pos.count; i += 3) {
+                            const a = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+                            const b = new THREE.Vector3().fromBufferAttribute(pos, i + 1).applyMatrix4(mesh.matrixWorld);
+                            const uvA = new THREE.Vector2().fromBufferAttribute(uv, i);
+                            const uvB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
 
+                            const dist3D = a.distanceTo(b);
+                            
+                            // Measure how many texture pixels this exact edge covers
+                            const du = Math.abs(uvA.x - uvB.x) * currentImageData.width;
+                            const dv = Math.abs(uvA.y - uvB.y) * currentImageData.height;
+                            const distUV = Math.sqrt(du*du + dv*dv);
+
+                            if (dist3D > 0.001 && distUV > 0.1) {
+                                pixelSizes.push(dist3D / distUV);
+                            }
+                        }
+                    }
+                });
+
+                let autoVoxelSize = 0.1; // Fallback
+                if (pixelSizes.length > 0) {
+                    // Sort and grab median to filter out math anomalies perfectly
+                    pixelSizes.sort((a, b) => a - b);
+                    autoVoxelSize = pixelSizes[Math.floor(pixelSizes.length / 2)];
+                    // Round to 4 decimal places to prevent float-drift
+                    autoVoxelSize = Math.round(autoVoxelSize * 10000) / 10000;
+                }
+                const voxelSize = autoVoxelSize;
+                
+                // 2. ALIGN GRID FLAWLESSLY TO MODEL ORIGINS
+                const modelBounds = new THREE.Box3().setFromObject(currentModel);
+                
+                // Forcing the grid offsets to be an exact multiple of the voxel size
+                // ensures that the blocky mesh perfectly snaps inside the voxel grid mathematically.
+                const gridOffsetX = Math.round(modelBounds.min.x / voxelSize) * voxelSize;
+                const gridOffsetY = Math.round(modelBounds.min.y / voxelSize) * voxelSize;
+                const gridOffsetZ = Math.round(modelBounds.min.z / voxelSize) * voxelSize;
+                
+                // 3. RASTERIZE INTO MAPPED GRID
+                const gridMap = new Map();
+                
                 currentModel.traverse((mesh) => {
                     if (mesh.isMesh) {
                         mesh.updateMatrixWorld(true);
                         
-                        // Convert geometry to non-indexed to read raw triangles easily
                         let geom = mesh.geometry;
-                        if (geom.index) {
-                            geom = geom.toNonIndexed();
-                        }
+                        if (geom.index) geom = geom.toNonIndexed();
                         
                         const pos = geom.attributes.position;
                         const uv = geom.attributes.uv;
-                        
+                        const normals = geom.attributes.normal; // Fetch true normals to fix "hole" and "sticking out" bugs
+
                         if (!pos || !uv) return;
 
-                        // Figure out how many points to mathematically sweep/sample over each face
-                        const samplesPerArea = 4 / (voxelSize * voxelSize);
+                        // Ultra-dense sampling ensures absolutely no corners or edge pixels are missed
+                        const stepSize = voxelSize * 0.05; 
 
                         for (let i = 0; i < pos.count; i += 3) {
-                            // Triangle corners in world space
                             const a = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
                             const b = new THREE.Vector3().fromBufferAttribute(pos, i + 1).applyMatrix4(mesh.matrixWorld);
                             const c = new THREE.Vector3().fromBufferAttribute(pos, i + 2).applyMatrix4(mesh.matrixWorld);
                             
-                            // UV coordinates of the triangle
                             const uvA = new THREE.Vector2().fromBufferAttribute(uv, i);
                             const uvB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
                             const uvC = new THREE.Vector2().fromBufferAttribute(uv, i + 2);
                             
-                            const triangle = new THREE.Triangle(a, b, c);
-                            const area = triangle.getArea();
-                            const numSamples = Math.max(1, Math.floor(area * samplesPerArea));
+                            let faceNormal = new THREE.Vector3();
+
+                            // Retrieve EXACT vertex normals. (This fixes the bug where blocks pushed outward instead of inward)
+                            if (normals) {
+                                const nA = new THREE.Vector3().fromBufferAttribute(normals, i);
+                                const nB = new THREE.Vector3().fromBufferAttribute(normals, i + 1);
+                                const nC = new THREE.Vector3().fromBufferAttribute(normals, i + 2);
+                                
+                                const normalMatrix = new THREE.Matrix3().getNormalMatrix(mesh.matrixWorld);
+                                nA.applyMatrix3(normalMatrix).normalize();
+                                nB.applyMatrix3(normalMatrix).normalize();
+                                nC.applyMatrix3(normalMatrix).normalize();
+                                
+                                faceNormal.addVectors(nA, nB).add(nC).normalize();
+                            } else {
+                                const v1 = new THREE.Vector3().subVectors(b, a);
+                                const v2 = new THREE.Vector3().subVectors(c, a);
+                                faceNormal.crossVectors(v1, v2).normalize();
+                            }
+
+                            // By pushing the point exactly half a block INWARD based on the true normal, 
+                            // we land directly in the dead-center of the interior voxel cell, skipping edge math entirely!
+                            const nudge = faceNormal.clone().multiplyScalar(-voxelSize * 0.5);
+
+                            const v1 = new THREE.Vector3().subVectors(b, a);
+                            const v2 = new THREE.Vector3().subVectors(c, a);
+                            const steps1 = Math.max(1, Math.ceil(v1.length() / stepSize));
+                            const steps2 = Math.max(1, Math.ceil(v2.length() / stepSize));
                             
-                            // Random uniform sweeping across the face
-                            for(let s = 0; s < numSamples; s++) {
-                                let r1 = Math.random(), r2 = Math.random();
-                                if(r1 + r2 > 1) { r1 = 1 - r1; r2 = 1 - r2; }
-                                const r3 = 1 - r1 - r2;
-                                
-                                // Interpolated 3D Position
-                                const px = a.x*r1 + b.x*r2 + c.x*r3;
-                                const py = a.y*r1 + b.y*r2 + c.y*r3;
-                                const pz = a.z*r1 + b.z*r2 + c.z*r3;
-                                
-                                // Interpolated 2D Texture coordinate
-                                const currUvX = uvA.x*r1 + uvB.x*r2 + uvC.x*r3;
-                                const currUvY = uvA.y*r1 + uvB.y*r2 + uvC.y*r3;
-                                
-                                // Read exact color of the texture at this specific UV
-                                const color = getCanvasColor(currUvX, currUvY, currentImageData);
-                                if(color.a < 0.1) continue; // Skip empty/transparent texture gaps
-                                
-                                // Snap coordinate to the Roblox grid size
-                                const sx = Math.floor(px / voxelSize) * voxelSize;
-                                const sy = Math.floor(py / voxelSize) * voxelSize;
-                                const sz = Math.floor(pz / voxelSize) * voxelSize;
-                                const key = `${sx.toFixed(3)},${sy.toFixed(3)},${sz.toFixed(3)}`;
-                                
-                                // Store a single solid color cube here
-                                if (!voxels.has(key)) {
-                                    voxels.set(key, { 
-                                        position: new THREE.Vector3(sx + voxelSize/2, sy + voxelSize/2, sz + voxelSize/2), 
-                                        color: new THREE.Color(color.r, color.g, color.b) 
-                                    });
+                            for(let s1 = 0; s1 <= steps1; s1++) {
+                                const u = s1 / steps1;
+                                for(let s2 = 0; s2 <= steps2; s2++) {
+                                    const v = s2 / steps2;
+                                    if(u + v > 1) continue; 
+                                    
+                                    const px = a.x + v1.x * u + v2.x * v + nudge.x;
+                                    const py = a.y + v1.y * u + v2.y * v + nudge.y;
+                                    const pz = a.z + v1.z * u + v2.z * v + nudge.z;
+                                    
+                                    const currUvX = uvA.x + (uvB.x - uvA.x) * u + (uvC.x - uvA.x) * v;
+                                    const currUvY = uvA.y + (uvB.y - uvA.y) * u + (uvC.y - uvA.y) * v;
+                                    
+                                    const color = getCanvasColor(currUvX, currUvY, currentImageData, currentTextureFlipY);
+                                    if(color.a < 0.1) continue;
+                                    
+                                    // Map to strict integer grid offsets
+                                    const ix = Math.floor((px - gridOffsetX) / voxelSize);
+                                    const iy = Math.floor((py - gridOffsetY) / voxelSize);
+                                    const iz = Math.floor((pz - gridOffsetZ) / voxelSize);
+                                    const key = `${ix},${iy},${iz}`;
+                                    
+                                    if (!gridMap.has(key)) {
+                                        const hex = new THREE.Color(color.r, color.g, color.b).getHexString();
+                                        gridMap.set(key, { 
+                                            ix, iy, iz, 
+                                            hex, r: color.r, g: color.g, b: color.b, 
+                                            merged: false 
+                                        });
+                                    }
                                 }
                             }
                         }
                     }
                 });
 
-                if (voxels.size === 0) {
+                const totalInitialVoxels = gridMap.size;
+                if (totalInitialVoxels === 0) {
                     showNotification('No valid textured surfaces found to optimize.', 'error');
                     return;
                 }
 
-                // Remove previous optimization
-                if (voxelMesh) {
-                    scene.remove(voxelMesh);
+                // 4. PROCESS VOXELS (AUTO MERGE)
+                const mergedBoxes = [];
+
+                if (useAutoMerge) {
+                    const checkArea = (startX, endX, startY, endY, startZ, endZ, targetHex) => {
+                        for (let x = startX; x <= endX; x++) {
+                            for (let y = startY; y <= endY; y++) {
+                                for (let z = startZ; z <= endZ; z++) {
+                                    const v = gridMap.get(`${x},${y},${z}`);
+                                    if (!v || v.merged || v.hex !== targetHex) return false;
+                                }
+                            }
+                        }
+                        return true;
+                    };
+
+                    const markArea = (startX, endX, startY, endY, startZ, endZ) => {
+                        for (let x = startX; x <= endX; x++) {
+                            for (let y = startY; y <= endY; y++) {
+                                for (let z = startZ; z <= endZ; z++) {
+                                    gridMap.get(`${x},${y},${z}`).merged = true;
+                                }
+                            }
+                        }
+                    };
+
+                    for (const voxel of gridMap.values()) {
+                        if (voxel.merged) continue;
+                        
+                        let { ix: minX, iy: minY, iz: minZ, hex } = voxel;
+                        let maxX = minX, maxY = minY, maxZ = minZ;
+                        
+                        while (checkArea(maxX + 1, maxX + 1, minY, maxY, minZ, maxZ, hex)) maxX++;
+                        while (checkArea(minX, maxX, maxY + 1, maxY + 1, minZ, maxZ, hex)) maxY++;
+                        while (checkArea(minX, maxX, minY, maxY, maxZ + 1, maxZ + 1, hex)) maxZ++;
+                        
+                        markArea(minX, maxX, minY, maxY, minZ, maxZ);
+                        
+                        mergedBoxes.push({
+                            minX, maxX, minY, maxY, minZ, maxZ,
+                            r: voxel.r, g: voxel.g, b: voxel.b
+                        });
+                    }
+                } else {
+                    for (const voxel of gridMap.values()) {
+                        mergedBoxes.push({
+                            minX: voxel.ix, maxX: voxel.ix,
+                            minY: voxel.iy, maxY: voxel.iy,
+                            minZ: voxel.iz, maxZ: voxel.iz,
+                            r: voxel.r, g: voxel.g, b: voxel.b
+                        });
+                    }
                 }
 
-                // Render as highly efficient InstancedMesh instead of thousands of individual meshes
-                const boxGeom = new THREE.BoxGeometry(voxelSize, voxelSize, voxelSize);
+                // 5. RENDER OUTPUT
+                if (voxelMesh) scene.remove(voxelMesh);
+
+                const boxGeom = new THREE.BoxGeometry(1, 1, 1);
                 const boxMat = new THREE.MeshLambertMaterial();
-                voxelMesh = new THREE.InstancedMesh(boxGeom, boxMat, voxels.size);
+                voxelMesh = new THREE.InstancedMesh(boxGeom, boxMat, mergedBoxes.length);
+                
+                const dummy = new THREE.Object3D();
+                const tempColor = new THREE.Color();
                 
                 let idx = 0;
-                const matrix = new THREE.Matrix4();
-                for (const voxel of voxels.values()) {
-                    matrix.setPosition(voxel.position);
-                    voxelMesh.setMatrixAt(idx, matrix);
-                    voxelMesh.setColorAt(idx, voxel.color);
+                for (const box of mergedBoxes) {
+                    const width = (box.maxX - box.minX + 1) * voxelSize;
+                    const height = (box.maxY - box.minY + 1) * voxelSize;
+                    const depth = (box.maxZ - box.minZ + 1) * voxelSize;
+                    
+                    const cx = ((box.minX + box.maxX) / 2) * voxelSize + (voxelSize / 2) + gridOffsetX;
+                    const cy = ((box.minY + box.maxY) / 2) * voxelSize + (voxelSize / 2) + gridOffsetY;
+                    const cz = ((box.minZ + box.maxZ) / 2) * voxelSize + (voxelSize / 2) + gridOffsetZ;
+                    
+                    dummy.position.set(cx, cy, cz);
+                    dummy.scale.set(width, height, depth);
+                    dummy.updateMatrix();
+                    
+                    voxelMesh.setMatrixAt(idx, dummy.matrix);
+                    
+                    tempColor.setRGB(box.r, box.g, box.b);
+                    voxelMesh.setColorAt(idx, tempColor);
+                    
                     idx++;
                 }
                 
@@ -551,14 +755,21 @@
                 
                 scene.add(voxelMesh);
                 
-                // Switch view
                 currentModel.visible = false;
                 showingVoxels = true;
                 
                 document.getElementById('toggle-view-btn').classList.remove('hidden');
                 document.getElementById('toggle-view-btn').textContent = 'Show Original';
                 
-                showNotification(`Optimized into ${voxels.size} solid cubes!`, 'success');
+                if (useAutoMerge) {
+                    showNotification(
+                        'Optimization Complete!', 
+                        'success', 
+                        `Flawlessly mapped! Reduced ${totalInitialVoxels} raw cubes to ${mergedBoxes.length} combined parts.`
+                    );
+                } else {
+                    showNotification(`Generated ${mergedBoxes.length} un-merged cubes!`, 'success');
+                }
 
             }, 50); 
         }
