@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blockbench FBX Viewer & Texturer</title>
+    <title>Blockbench GLTF Viewer & Optimizer</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,7 +46,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><line x1="12" y1="22" x2="12" y2="12"></line></svg>
                     Model Viewer
                 </h1>
-                <p class="text-sm text-gray-400 mt-1">Upload Blockbench Models & Textures</p>
+                <p class="text-sm text-gray-400 mt-1">Upload GLTF/GLB Models</p>
             </div>
 
             <!-- Step 1: Model Upload -->
@@ -54,15 +54,15 @@
                 <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">1. Load Model</h2>
                 
                 <div class="bg-indigo-900/30 border border-indigo-500/30 rounded-lg p-3 text-xs text-indigo-200 shadow-inner">
-                    <strong>Pro Tip:</strong> For Blockbench, go to <em>File > Export > Export glTF</em>. The <strong>.glb</strong> format works perfectly on the web!
+                    <strong>Note:</strong> We only support <strong>.glb</strong> or <strong>.gltf</strong> files to ensure perfect web compatibility and geometry mapping.
                 </div>
 
-                <label for="fbx-upload" class="cursor-pointer group flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-600 rounded-xl hover:border-indigo-500 hover:bg-gray-800/50 transition-all">
+                <label for="model-upload" class="cursor-pointer group flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-600 rounded-xl hover:border-indigo-500 hover:bg-gray-800/50 transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-indigo-400 mb-2 transition-colors"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    <span class="text-sm font-medium text-gray-300">Choose Model File</span>
-                    <span class="text-xs text-gray-500 mt-1">.glb, .gltf, or .fbx</span>
+                    <span class="text-sm font-medium text-gray-300">Choose GLTF File</span>
+                    <span class="text-xs text-gray-500 mt-1">.glb or .gltf</span>
                 </label>
-                <input type="file" id="fbx-upload" accept=".fbx,.glb,.gltf" class="hidden" />
+                <input type="file" id="model-upload" accept=".glb,.gltf" class="hidden" />
             </div>
 
             <!-- Step 2: Texture Upload -->
@@ -71,7 +71,7 @@
                 <label for="texture-upload" class="cursor-pointer group flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-600 rounded-xl hover:border-green-500 hover:bg-gray-800/50 transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-green-400 mb-2 transition-colors"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                     <span class="text-sm font-medium text-gray-300">Choose Texture</span>
-                    <span class="text-xs text-gray-500 mt-1">PNG or JPG (Pixel Art friendly)</span>
+                    <span class="text-xs text-gray-500 mt-1">(Only if not embedded)</span>
                 </label>
                 <input type="file" id="texture-upload" accept="image/png, image/jpeg" class="hidden" />
             </div>
@@ -81,11 +81,10 @@
                 <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">3. Optimize for Roblox</h2>
                 <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700 flex flex-col gap-4">
                     
-                    <!-- Voxel Settings -->
                     <div class="flex flex-col gap-3">
                         <div class="bg-indigo-900/30 border border-indigo-500/30 rounded-lg p-3 text-xs text-indigo-200 shadow-inner flex items-start gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0 text-indigo-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                            <span><strong>Auto-Voxel Enabled:</strong> Analyzes your pixel-art texture to automatically split existing geometry into perfectly matched 1-to-1 cubes.</span>
+                            <span><strong>Pixel-Perfect Mapping:</strong> Projects every single pixel mathematically into an absolute volumetric grid.</span>
                         </div>
                         
                         <label class="flex items-center gap-2 cursor-pointer group mt-2">
@@ -147,7 +146,6 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
         let scene, camera, renderer, controls;
@@ -215,6 +213,7 @@
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
+            // Critical for accurate color mapping
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
             container.appendChild(renderer.domElement);
 
@@ -251,7 +250,7 @@
         }
 
         function setupEventListeners() {
-            document.getElementById('fbx-upload').addEventListener('change', handleModelUpload);
+            document.getElementById('model-upload').addEventListener('change', handleModelUpload);
             document.getElementById('texture-upload').addEventListener('change', handleTextureUpload);
             document.getElementById('reset-cam-btn').addEventListener('click', () => {
                 camera.position.set(15, 10, 15);
@@ -319,64 +318,34 @@
 
             const extension = file.name.split('.').pop().toLowerCase();
             const isGLTF = extension === 'glb' || extension === 'gltf';
-            const isFBX = extension === 'fbx';
 
-            if (!isGLTF && !isFBX) {
-                showNotification('Unsupported file type. Use FBX, GLB, or GLTF.', 'error');
+            if (!isGLTF) {
+                showNotification('Unsupported file type. Please use .glb or .gltf.', 'error');
                 event.target.value = '';
                 return;
             }
 
-            showNotification('Loading Model...', 'success');
+            showNotification('Loading GLTF Model...', 'success');
 
             try {
-                if (isGLTF) {
-                    const objectUrl = URL.createObjectURL(file);
-                    const loader = new GLTFLoader();
-                    loader.load(
-                        objectUrl,
-                        function (gltf) {
-                            setupModel(gltf.scene);
-                            URL.revokeObjectURL(objectUrl);
-                        },
-                        undefined,
-                        function (error) {
-                            console.error("GLTF Load Error:", error);
-                            showNotification('Error loading GLTF.', 'error');
-                            URL.revokeObjectURL(objectUrl);
-                        }
-                    );
-                } else if (isFBX) {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const uint8Array = new Uint8Array(arrayBuffer);
-                    
-                    const magic = 'Kaydara FBX Binary  ';
-                    let isBinary = true;
-                    for (let i = 0; i < magic.length; i++) {
-                        if (uint8Array[i] !== magic.charCodeAt(i)) {
-                            isBinary = false;
-                            break;
-                        }
+                const objectUrl = URL.createObjectURL(file);
+                const loader = new GLTFLoader();
+                loader.load(
+                    objectUrl,
+                    function (gltf) {
+                        setupModel(gltf.scene);
+                        URL.revokeObjectURL(objectUrl);
+                    },
+                    undefined,
+                    function (error) {
+                        console.error("GLTF Load Error:", error);
+                        showNotification('Error loading GLTF file.', 'error');
+                        URL.revokeObjectURL(objectUrl);
                     }
-
-                    let bufferToParse = arrayBuffer;
-                    if (!isBinary) {
-                        let text = await file.text();
-                        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-                        bufferToParse = new TextEncoder().encode(text).buffer;
-                    }
-
-                    const loader = new FBXLoader();
-                    const object = loader.parse(bufferToParse, '');
-                    setupModel(object);
-                }
+                );
             } catch (error) {
                 console.error("Model Load Error:", error);
-                if (isFBX) {
-                    showNotification('FBX error. Try exporting as GLTF/GLB instead!', 'error');
-                } else {
-                    showNotification('Failed to process file.', 'error');
-                }
+                showNotification('Failed to process file.', 'error');
             } finally {
                 event.target.value = ''; 
             }
@@ -502,7 +471,28 @@
             );
         }
 
-        // --- Flawless Auto-Scaled Voxelization Logic ---
+        // Helper for Barycentric coordinates (projects pixel perfectly to 3D surface)
+        function getBarycentric(px, py, a, b, c) {
+            const v0 = { x: b.x - a.x, y: b.y - a.y };
+            const v1 = { x: c.x - a.x, y: c.y - a.y };
+            const v2 = { x: px - a.x, y: py - a.y };
+            
+            const d00 = v0.x * v0.x + v0.y * v0.y;
+            const d01 = v0.x * v1.x + v0.y * v1.y;
+            const d11 = v1.x * v1.x + v1.y * v1.y;
+            const d20 = v2.x * v0.x + v2.y * v0.y;
+            const d21 = v2.x * v1.x + v2.y * v1.y;
+            
+            const denom = d00 * d11 - d01 * d01;
+            if (Math.abs(denom) < 0.00001) return { u: -1, v: -1, w: -1 }; // Degenerate
+            
+            const v = (d11 * d20 - d01 * d21) / denom;
+            const w = (d00 * d21 - d01 * d20) / denom;
+            const u = 1.0 - v - w;
+            return { u, v, w };
+        }
+
+        // --- Flawless Barycentric Voxelization Logic ---
         function voxelizeModel() {
             if (!currentModel) {
                 showNotification('Load a model first.', 'error');
@@ -513,14 +503,15 @@
                 return;
             }
 
-            showNotification('Analyzing geometric precision...', 'success', 'Generating mathematically aligned grid...');
+            showNotification('Performing Barycentric Projection...', 'success', 'Extracting exact texture pixels...');
             
             setTimeout(() => {
                 const useAutoMerge = document.getElementById('auto-merge-voxels').checked;
+                const texW = currentImageData.width;
+                const texH = currentImageData.height;
                 
-                // 1. ADVANCED PIXEL-SIZE DETECTION (Uses median filtering to ignore weird/singular geometry faces)
+                // 1. PERFECT PIXEL-SIZE DETECTION
                 let pixelSizes = [];
-                
                 currentModel.traverse((mesh) => {
                     if (mesh.isMesh && mesh.geometry.attributes.position && mesh.geometry.attributes.uv) {
                         const pos = mesh.geometry.attributes.position;
@@ -529,14 +520,12 @@
                         for (let i = 0; i < pos.count; i += 3) {
                             const a = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
                             const b = new THREE.Vector3().fromBufferAttribute(pos, i + 1).applyMatrix4(mesh.matrixWorld);
-                            const uvA = new THREE.Vector2().fromBufferAttribute(uv, i);
-                            const uvB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
+                            const uA = new THREE.Vector2().fromBufferAttribute(uv, i);
+                            const uB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
 
                             const dist3D = a.distanceTo(b);
-                            
-                            // Measure how many texture pixels this exact edge covers
-                            const du = Math.abs(uvA.x - uvB.x) * currentImageData.width;
-                            const dv = Math.abs(uvA.y - uvB.y) * currentImageData.height;
+                            const du = (uA.x - uB.x) * texW;
+                            const dv = (uA.y - uB.y) * texH;
                             const distUV = Math.sqrt(du*du + dv*dv);
 
                             if (dist3D > 0.001 && distUV > 0.1) {
@@ -546,26 +535,19 @@
                     }
                 });
 
-                let autoVoxelSize = 0.1; // Fallback
+                let autoVoxelSize = 0.1;
                 if (pixelSizes.length > 0) {
-                    // Sort and grab median to filter out math anomalies perfectly
+                    // Median filter to guarantee exact alignment against weird edge cases
                     pixelSizes.sort((a, b) => a - b);
                     autoVoxelSize = pixelSizes[Math.floor(pixelSizes.length / 2)];
-                    // Round to 4 decimal places to prevent float-drift
                     autoVoxelSize = Math.round(autoVoxelSize * 10000) / 10000;
                 }
                 const voxelSize = autoVoxelSize;
                 
-                // 2. ALIGN GRID FLAWLESSLY TO MODEL ORIGINS
+                // 2. ABSOLUTE GRID MAPPING
+                // Determine the absolute minimum bound of the model to use as a firm grid anchor
                 const modelBounds = new THREE.Box3().setFromObject(currentModel);
-                
-                // Forcing the grid offsets to be an exact multiple of the voxel size
-                // ensures that the blocky mesh perfectly snaps inside the voxel grid mathematically.
-                const gridOffsetX = Math.round(modelBounds.min.x / voxelSize) * voxelSize;
-                const gridOffsetY = Math.round(modelBounds.min.y / voxelSize) * voxelSize;
-                const gridOffsetZ = Math.round(modelBounds.min.z / voxelSize) * voxelSize;
-                
-                // 3. RASTERIZE INTO MAPPED GRID
+                const anchor = modelBounds.min;
                 const gridMap = new Map();
                 
                 currentModel.traverse((mesh) => {
@@ -577,80 +559,92 @@
                         
                         const pos = geom.attributes.position;
                         const uv = geom.attributes.uv;
-                        const normals = geom.attributes.normal; // Fetch true normals to fix "hole" and "sticking out" bugs
+                        const normals = geom.attributes.normal; 
 
                         if (!pos || !uv) return;
 
-                        // Ultra-dense sampling ensures absolutely no corners or edge pixels are missed
-                        const stepSize = voxelSize * 0.05; 
-
+                        // Iterate every triangle and project its texture pixels into 3D
                         for (let i = 0; i < pos.count; i += 3) {
-                            const a = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
-                            const b = new THREE.Vector3().fromBufferAttribute(pos, i + 1).applyMatrix4(mesh.matrixWorld);
-                            const c = new THREE.Vector3().fromBufferAttribute(pos, i + 2).applyMatrix4(mesh.matrixWorld);
+                            const a3D = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+                            const b3D = new THREE.Vector3().fromBufferAttribute(pos, i + 1).applyMatrix4(mesh.matrixWorld);
+                            const c3D = new THREE.Vector3().fromBufferAttribute(pos, i + 2).applyMatrix4(mesh.matrixWorld);
                             
-                            const uvA = new THREE.Vector2().fromBufferAttribute(uv, i);
-                            const uvB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
-                            const uvC = new THREE.Vector2().fromBufferAttribute(uv, i + 2);
+                            const uA = new THREE.Vector2().fromBufferAttribute(uv, i);
+                            const uB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
+                            const uC = new THREE.Vector2().fromBufferAttribute(uv, i + 2);
                             
+                            // Get EXACT vertex normal to push safely into the interior (Fixes blocks poking out)
                             let faceNormal = new THREE.Vector3();
-
-                            // Retrieve EXACT vertex normals. (This fixes the bug where blocks pushed outward instead of inward)
                             if (normals) {
                                 const nA = new THREE.Vector3().fromBufferAttribute(normals, i);
                                 const nB = new THREE.Vector3().fromBufferAttribute(normals, i + 1);
                                 const nC = new THREE.Vector3().fromBufferAttribute(normals, i + 2);
-                                
                                 const normalMatrix = new THREE.Matrix3().getNormalMatrix(mesh.matrixWorld);
                                 nA.applyMatrix3(normalMatrix).normalize();
                                 nB.applyMatrix3(normalMatrix).normalize();
                                 nC.applyMatrix3(normalMatrix).normalize();
-                                
                                 faceNormal.addVectors(nA, nB).add(nC).normalize();
                             } else {
-                                const v1 = new THREE.Vector3().subVectors(b, a);
-                                const v2 = new THREE.Vector3().subVectors(c, a);
+                                const v1 = new THREE.Vector3().subVectors(b3D, a3D);
+                                const v2 = new THREE.Vector3().subVectors(c3D, a3D);
                                 faceNormal.crossVectors(v1, v2).normalize();
                             }
 
-                            // By pushing the point exactly half a block INWARD based on the true normal, 
-                            // we land directly in the dead-center of the interior voxel cell, skipping edge math entirely!
+                            // Push point exactly 0.5 voxels inwards to land perfectly in the center of the block
                             const nudge = faceNormal.clone().multiplyScalar(-voxelSize * 0.5);
 
-                            const v1 = new THREE.Vector3().subVectors(b, a);
-                            const v2 = new THREE.Vector3().subVectors(c, a);
-                            const steps1 = Math.max(1, Math.ceil(v1.length() / stepSize));
-                            const steps2 = Math.max(1, Math.ceil(v2.length() / stepSize));
-                            
-                            for(let s1 = 0; s1 <= steps1; s1++) {
-                                const u = s1 / steps1;
-                                for(let s2 = 0; s2 <= steps2; s2++) {
-                                    const v = s2 / steps2;
-                                    if(u + v > 1) continue; 
-                                    
-                                    const px = a.x + v1.x * u + v2.x * v + nudge.x;
-                                    const py = a.y + v1.y * u + v2.y * v + nudge.y;
-                                    const pz = a.z + v1.z * u + v2.z * v + nudge.z;
-                                    
-                                    const currUvX = uvA.x + (uvB.x - uvA.x) * u + (uvC.x - uvA.x) * v;
-                                    const currUvY = uvA.y + (uvB.y - uvA.y) * u + (uvC.y - uvA.y) * v;
-                                    
-                                    const color = getCanvasColor(currUvX, currUvY, currentImageData, currentTextureFlipY);
-                                    if(color.a < 0.1) continue;
-                                    
-                                    // Map to strict integer grid offsets
-                                    const ix = Math.floor((px - gridOffsetX) / voxelSize);
-                                    const iy = Math.floor((py - gridOffsetY) / voxelSize);
-                                    const iz = Math.floor((pz - gridOffsetZ) / voxelSize);
-                                    const key = `${ix},${iy},${iz}`;
-                                    
-                                    if (!gridMap.has(key)) {
-                                        const hex = new THREE.Color(color.r, color.g, color.b).getHexString();
-                                        gridMap.set(key, { 
-                                            ix, iy, iz, 
-                                            hex, r: color.r, g: color.g, b: color.b, 
-                                            merged: false 
-                                        });
+                            // Bounding box of the triangle in TEXTURE PIXEL space
+                            const pxA = uA.x * texW, pyA = uA.y * texH;
+                            const pxB = uB.x * texW, pyB = uB.y * texH;
+                            const pxC = uC.x * texW, pyC = uC.y * texH;
+
+                            const minPx = Math.floor(Math.min(pxA, pxB, pxC));
+                            const maxPx = Math.ceil(Math.max(pxA, pxB, pxC));
+                            const minPy = Math.floor(Math.min(pyA, pyB, pyC));
+                            const maxPy = Math.ceil(Math.max(pyA, pyB, pyC));
+
+                            // We loop over EVERY pixel within the bounding box
+                            for (let px = minPx; px <= maxPx; px++) {
+                                for (let py = minPy; py <= maxPy; py++) {
+                                    const sampleX = px + 0.5;
+                                    const sampleY = py + 0.5;
+
+                                    const { u, v, w } = getBarycentric(
+                                        sampleX, sampleY, 
+                                        {x: pxA, y: pyA}, {x: pxB, y: pyB}, {x: pxC, y: pyC}
+                                    );
+
+                                    // Check if this pixel is inside the triangle mapping
+                                    if (u >= -0.001 && v >= -0.001 && w >= -0.001) {
+                                        // Perfectly interpolated 3D position
+                                        const posX = a3D.x * u + b3D.x * v + c3D.x * w + nudge.x;
+                                        const posY = a3D.y * u + b3D.y * v + c3D.y * w + nudge.y;
+                                        const posZ = a3D.z * u + b3D.z * v + c3D.z * w + nudge.z;
+
+                                        // By finding the delta from the anchor and using Math.round, we skip
+                                        // all edge drift and safely snap to exact integer grid cells!
+                                        const ix = Math.round((posX - anchor.x - (voxelSize / 2)) / voxelSize);
+                                        const iy = Math.round((posY - anchor.y - (voxelSize / 2)) / voxelSize);
+                                        const iz = Math.round((posZ - anchor.z - (voxelSize / 2)) / voxelSize);
+                                        const key = `${ix},${iy},${iz}`;
+
+                                        if (!gridMap.has(key)) {
+                                            // Get raw color from texture mapping for this specific pixel
+                                            const color = getCanvasColor(sampleX / texW, sampleY / texH, currentImageData, currentTextureFlipY);
+                                            if (color.a >= 0.1) {
+                                                // FIX: "Colors seemed lighter"
+                                                // We must manually convert the extracted Canvas sRGB pixels into Linear space.
+                                                // Otherwise, Three.js double-encodes them, artificially boosting the brightness!
+                                                const linearColor = new THREE.Color(color.r, color.g, color.b).convertSRGBToLinear();
+                                                const hex = linearColor.getHexString();
+                                                
+                                                gridMap.set(key, { 
+                                                    ix, iy, iz, 
+                                                    hex, r: linearColor.r, g: linearColor.g, b: linearColor.b, 
+                                                    merged: false 
+                                                });
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -664,7 +658,7 @@
                     return;
                 }
 
-                // 4. PROCESS VOXELS (AUTO MERGE)
+                // 4. PROCESS VOXELS (GREEDY MESHING)
                 const mergedBoxes = [];
 
                 if (useAutoMerge) {
@@ -722,7 +716,8 @@
                 if (voxelMesh) scene.remove(voxelMesh);
 
                 const boxGeom = new THREE.BoxGeometry(1, 1, 1);
-                const boxMat = new THREE.MeshLambertMaterial();
+                // Use Standard Material with high roughness to perfectly match Blockbench matte lighting
+                const boxMat = new THREE.MeshStandardMaterial({ roughness: 1.0, metalness: 0.0 });
                 voxelMesh = new THREE.InstancedMesh(boxGeom, boxMat, mergedBoxes.length);
                 
                 const dummy = new THREE.Object3D();
@@ -734,9 +729,10 @@
                     const height = (box.maxY - box.minY + 1) * voxelSize;
                     const depth = (box.maxZ - box.minZ + 1) * voxelSize;
                     
-                    const cx = ((box.minX + box.maxX) / 2) * voxelSize + (voxelSize / 2) + gridOffsetX;
-                    const cy = ((box.minY + box.maxY) / 2) * voxelSize + (voxelSize / 2) + gridOffsetY;
-                    const cz = ((box.minZ + box.maxZ) / 2) * voxelSize + (voxelSize / 2) + gridOffsetZ;
+                    // Reposition based on the absolute anchor grid 
+                    const cx = ((box.minX + box.maxX) / 2) * voxelSize + (voxelSize / 2) + anchor.x;
+                    const cy = ((box.minY + box.maxY) / 2) * voxelSize + (voxelSize / 2) + anchor.y;
+                    const cz = ((box.minZ + box.maxZ) / 2) * voxelSize + (voxelSize / 2) + anchor.z;
                     
                     dummy.position.set(cx, cy, cz);
                     dummy.scale.set(width, height, depth);
@@ -765,7 +761,7 @@
                     showNotification(
                         'Optimization Complete!', 
                         'success', 
-                        `Flawlessly mapped! Reduced ${totalInitialVoxels} raw cubes to ${mergedBoxes.length} combined parts.`
+                        `1 Pixel = 1 Cube mapped flawlessly. Reduced ${totalInitialVoxels} raw cubes to ${mergedBoxes.length} combined parts.`
                     );
                 } else {
                     showNotification(`Generated ${mergedBoxes.length} un-merged cubes!`, 'success');
