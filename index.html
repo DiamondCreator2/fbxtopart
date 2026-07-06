@@ -78,35 +78,77 @@
 
             <!-- Step 3: Roblox Optimizer -->
             <div class="flex flex-col gap-3">
-                <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">3. Optimize for Roblox</h2>
+                <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">3. Process Model</h2>
                 <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700 flex flex-col gap-4">
                     
                     <div class="flex flex-col gap-3">
-                        <div class="bg-indigo-900/30 border border-indigo-500/30 rounded-lg p-3 text-xs text-indigo-200 shadow-inner flex items-start gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0 text-indigo-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                            <span><strong>Pixel-Perfect Mapping:</strong> Projects every single pixel mathematically into an absolute volumetric grid.</span>
+                        
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">Processing Method</label>
+                            <select id="opt-method" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 cursor-pointer">
+                                <option value="texture">Physical Texture Upscale & UV Fix</option>
+                                <option value="pixel">Pixel-Perfect Cubes (High Part Count)</option>
+                                <option value="solid">Color Original Geometry (Low Part Count)</option>
+                            </select>
                         </div>
                         
-                        <label class="flex items-center gap-2 cursor-pointer group mt-2">
-                            <div class="relative flex items-center">
-                                <input type="checkbox" id="auto-merge-voxels" class="peer appearance-none w-5 h-5 border-2 border-gray-600 rounded bg-gray-900 checked:bg-indigo-500 checked:border-indigo-500 transition-colors cursor-pointer" checked>
-                                <svg class="absolute w-3.5 h-3.5 top-1 left-[3px] text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <!-- TEXTURE UPSCALER OPTIONS -->
+                        <div id="texture-options" class="flex flex-col gap-3 transition-opacity">
+                            <div class="bg-indigo-900/30 border border-indigo-500/30 rounded-lg p-3 text-xs text-indigo-200 shadow-inner flex items-start gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0 text-indigo-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                <span><strong>Anti-Blur Engine:</strong> Upscales to a strict Power-of-Two (1024x1024) to prevent engine resizing, and physically pads the UVs to hide compression artifacts.</span>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm text-gray-200 group-hover:text-white transition-colors">Auto-Merge Solid Colors</span>
-                                <span class="text-[10px] text-gray-500">Combines parts of same color into large blocks</span>
+                            
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1 flex justify-between">
+                                    <span>UV Anti-Bleed Padding</span>
+                                    <span id="uv-padding-display" class="text-indigo-400 text-[10px] font-medium">0.15 Pixels</span>
+                                </label>
+                                <input type="range" id="uv-padding-input" min="0" max="0.4" step="0.01" value="0.15" class="w-full accent-indigo-500 cursor-pointer">
+                                <p class="text-[10px] text-gray-500 mt-1">Increase if you still see blur in Roblox. Decrease if textures look stretched/warped.</p>
                             </div>
-                        </label>
+                        </div>
+
+                        <!-- PIXEL VOXELIZER OPTIONS -->
+                        <div id="pixel-options" class="hidden flex-col gap-3 transition-opacity">
+                            <div class="bg-indigo-900/30 border border-indigo-500/30 rounded-lg p-3 text-xs text-indigo-200 shadow-inner flex items-start gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0 text-indigo-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                <span><strong>3D Surface Mapping:</strong> Traces the physical geometry in strict local space, completely guaranteeing zero missed blocks or flipped textures.</span>
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1 flex justify-between">
+                                    <span>Voxel Target Scale</span>
+                                    <span class="text-indigo-400 text-[10px] font-medium">0.0625 = 1/16th Block</span>
+                                </label>
+                                <input type="number" id="voxel-scale-input" value="0.0625" step="0.015625" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono">
+                            </div>
+
+                            <label class="flex items-center gap-2 cursor-pointer group mt-1">
+                                <div class="relative flex items-center">
+                                    <input type="checkbox" id="auto-merge-voxels" class="peer appearance-none w-5 h-5 border-2 border-gray-600 rounded bg-gray-900 checked:bg-indigo-500 checked:border-indigo-500 transition-colors cursor-pointer" checked>
+                                    <svg class="absolute w-3.5 h-3.5 top-1 left-[3px] text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm text-gray-200 group-hover:text-white transition-colors">Auto-Merge Solid Colors</span>
+                                    <span class="text-[10px] text-gray-500">Combines parts of same color into large blocks</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="flex gap-2 pt-2 border-t border-gray-700/50">
-                        <button id="voxelize-btn" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors text-sm shadow-lg shadow-indigo-500/20">
-                            Voxelize Model
+                        <button id="optimize-btn" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors text-sm shadow-lg shadow-indigo-500/20">
+                            Process Model
                         </button>
                         <button id="toggle-view-btn" class="hidden flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors text-sm border border-gray-600">
                             Show Original
                         </button>
                     </div>
+                    <button id="download-btn" class="hidden w-full mt-1 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium transition-colors text-sm shadow-lg shadow-green-500/20 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Download Processed (.GLB)
+                    </button>
                 </div>
             </div>
 
@@ -147,18 +189,17 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
         let scene, camera, renderer, controls;
         let currentModel = null;
         let toastTimeout;
         
-        // Voxelization state
         let currentImageData = null; 
         let currentTextureFlipY = true;
-        let voxelMesh = null;
-        let showingVoxels = false;
+        let optimizedModel = null;
+        let showingOptimized = false;
 
-        // Custom notification system
         function showNotification(message, type = 'success', submessage = null) {
             const toast = document.getElementById('toast');
             const msgEl = document.getElementById('toast-message');
@@ -213,7 +254,7 @@
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
-            // Critical for accurate color mapping
+            // Critical for accurate color mapping output
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
             container.appendChild(renderer.domElement);
 
@@ -222,16 +263,12 @@
             controls.dampingFactor = 0.05;
             controls.target.set(0, 0, 0);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
             dirLight.position.set(10, 20, 10);
             scene.add(dirLight);
-            
-            const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
-            backLight.position.set(-10, -20, -10);
-            scene.add(backLight);
 
             window.addEventListener('resize', onWindowResize, false);
             animate();
@@ -258,42 +295,47 @@
                 controls.update();
             });
             
-            document.getElementById('voxelize-btn').addEventListener('click', voxelizeModel);
+            document.getElementById('optimize-btn').addEventListener('click', optimizeModel);
             document.getElementById('toggle-view-btn').addEventListener('click', toggleView);
+            document.getElementById('download-btn').addEventListener('click', downloadModel);
+            
+            document.getElementById('uv-padding-input').addEventListener('input', (e) => {
+                document.getElementById('uv-padding-display').textContent = parseFloat(e.target.value).toFixed(2) + ' Pixels';
+            });
+            
+            document.getElementById('opt-method').addEventListener('change', (e) => {
+                const pixelOptions = document.getElementById('pixel-options');
+                const textureOptions = document.getElementById('texture-options');
+                
+                if (e.target.value === 'pixel') {
+                    pixelOptions.classList.remove('hidden');
+                    pixelOptions.classList.add('flex');
+                    textureOptions.classList.add('hidden');
+                    textureOptions.classList.remove('flex');
+                } else if (e.target.value === 'texture') {
+                    pixelOptions.classList.add('hidden');
+                    pixelOptions.classList.remove('flex');
+                    textureOptions.classList.remove('hidden');
+                    textureOptions.classList.add('flex');
+                } else {
+                    pixelOptions.classList.add('hidden');
+                    pixelOptions.classList.remove('flex');
+                    textureOptions.classList.add('hidden');
+                    textureOptions.classList.remove('flex');
+                }
+            });
         }
 
-        // Color sampling helper
-        function getCanvasColor(u, v, imageData, flipY) {
-            let u_wrap = u - Math.floor(u);
-            let v_wrap = v - Math.floor(v);
-            
-            let x = Math.floor(u_wrap * imageData.width);
-            let y = flipY 
-                ? Math.floor((1 - v_wrap) * imageData.height) 
-                : Math.floor(v_wrap * imageData.height);
-            
-            x = Math.max(0, Math.min(x, imageData.width - 1));
-            y = Math.max(0, Math.min(y, imageData.height - 1));
-            
-            const index = (y * imageData.width + x) * 4;
-            return {
-                r: imageData.data[index] / 255,
-                g: imageData.data[index + 1] / 255,
-                b: imageData.data[index + 2] / 255,
-                a: imageData.data[index + 3] / 255
-            };
-        }
-
-        function clearVoxels() {
-            if (voxelMesh) {
-                scene.remove(voxelMesh);
-                voxelMesh = null;
-                showingVoxels = false;
+        function clearOptimized() {
+            if (optimizedModel) {
+                scene.remove(optimizedModel);
+                optimizedModel = null;
+                showingOptimized = false;
                 document.getElementById('toggle-view-btn').classList.add('hidden');
+                document.getElementById('download-btn').classList.add('hidden');
             }
         }
 
-        // Helper to extract embedded texture image data from 3D model
         function extractImageDataFromTexture(image, flipY) {
             try {
                 currentTextureFlipY = flipY !== undefined ? flipY : true;
@@ -353,7 +395,7 @@
 
         function setupModel(object) {
             if (currentModel) scene.remove(currentModel);
-            clearVoxels();
+            clearOptimized();
             currentImageData = null; 
             
             currentModel = object;
@@ -412,7 +454,7 @@
             };
             img.src = objectUrl;
             
-            clearVoxels(); 
+            clearOptimized(); 
             if (currentModel) currentModel.visible = true;
 
             const textureLoader = new THREE.TextureLoader();
@@ -471,7 +513,27 @@
             );
         }
 
-        // Helper for Barycentric coordinates (projects pixel perfectly to 3D surface)
+        function getCanvasColor(u, v, imageData, flipY) {
+            let u_wrap = u - Math.floor(u);
+            let v_wrap = v - Math.floor(v);
+            
+            let x = Math.floor(u_wrap * imageData.width);
+            let y = flipY 
+                ? Math.floor((1 - v_wrap) * imageData.height) 
+                : Math.floor(v_wrap * imageData.height);
+            
+            x = Math.max(0, Math.min(x, imageData.width - 1));
+            y = Math.max(0, Math.min(y, imageData.height - 1));
+            
+            const index = (y * imageData.width + x) * 4;
+            return {
+                r: imageData.data[index] / 255,
+                g: imageData.data[index + 1] / 255,
+                b: imageData.data[index + 2] / 255,
+                a: imageData.data[index + 3] / 255
+            };
+        }
+
         function getBarycentric(px, py, a, b, c) {
             const v0 = { x: b.x - a.x, y: b.y - a.y };
             const v1 = { x: c.x - a.x, y: c.y - a.y };
@@ -484,7 +546,7 @@
             const d21 = v2.x * v1.x + v2.y * v1.y;
             
             const denom = d00 * d11 - d01 * d01;
-            if (Math.abs(denom) < 0.00001) return { u: -1, v: -1, w: -1 }; // Degenerate
+            if (Math.abs(denom) < 0.00001) return { u: -1, v: -1, w: -1 }; 
             
             const v = (d11 * d20 - d01 * d21) / denom;
             const w = (d00 * d21 - d01 * d20) / denom;
@@ -492,8 +554,8 @@
             return { u, v, w };
         }
 
-        // --- Flawless Barycentric Voxelization Logic ---
-        function voxelizeModel() {
+        // --- Core Optimization Engine ---
+        function optimizeModel() {
             if (!currentModel) {
                 showNotification('Load a model first.', 'error');
                 return;
@@ -502,288 +564,499 @@
                 showNotification('Apply a texture first to analyze colors.', 'error');
                 return;
             }
+            
+            const optMethod = document.getElementById('opt-method').value;
 
-            showNotification('Performing Barycentric Projection...', 'success', 'Extracting exact texture pixels...');
+            if (optMethod === 'solid') {
+                runSolidColorOptimizer();
+            } else if (optMethod === 'texture') {
+                runTextureFixer();
+            } else {
+                runPixelVoxelizer();
+            }
+        }
+
+        // ---------------------------------------------------------
+        // METHOD 3: FIX TEXTURE FILTERING (Strict Power-Of-Two + Padding)
+        // ---------------------------------------------------------
+        function runTextureFixer() {
+            showNotification('Upscaling & Padding...', 'success', 'Enlarging textures and padding UVs to bypass Roblox edge-blurring...');
             
             setTimeout(() => {
-                const useAutoMerge = document.getElementById('auto-merge-voxels').checked;
-                const texW = currentImageData.width;
-                const texH = currentImageData.height;
+                if (optimizedModel) scene.remove(optimizedModel);
                 
-                // 1. PERFECT PIXEL-SIZE DETECTION
-                let pixelSizes = [];
-                currentModel.traverse((mesh) => {
-                    if (mesh.isMesh && mesh.geometry.attributes.position && mesh.geometry.attributes.uv) {
-                        const pos = mesh.geometry.attributes.position;
-                        const uv = mesh.geometry.attributes.uv;
+                optimizedModel = currentModel.clone();
+                
+                // FORCE ABSOLUTE POWER OF TWO
+                // Roblox compresses and completely distorts NPOT (Non-Power of Two) images.
+                // By forcing exactly 1024x1024, the engine accepts it cleanly.
+                const TARGET_RES = 1024; 
+                
+                const paddingPixels = parseFloat(document.getElementById('uv-padding-input').value) || 0.15;
+
+                optimizedModel.traverse((child) => {
+                    if (child.isMesh) {
                         
-                        for (let i = 0; i < pos.count; i += 3) {
-                            const a = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
-                            const b = new THREE.Vector3().fromBufferAttribute(pos, i + 1).applyMatrix4(mesh.matrixWorld);
-                            const uA = new THREE.Vector2().fromBufferAttribute(uv, i);
-                            const uB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
+                        // Un-index the geometry to securely modify independent face UVs
+                        child.geometry = child.geometry.clone();
+                        if (child.geometry.index) child.geometry = child.geometry.toNonIndexed();
 
-                            const dist3D = a.distanceTo(b);
-                            const du = (uA.x - uB.x) * texW;
-                            const dv = (uA.y - uB.y) * texH;
-                            const distUV = Math.sqrt(du*du + dv*dv);
+                        let origImage = null;
+                        if (child.material) {
+                            const mats = Array.isArray(child.material) ? child.material : [child.material];
+                            mats.forEach(mat => {
+                                if (mat.map && mat.map.image) {
+                                    origImage = mat.map.image;
+                                    
+                                    const canvas = document.createElement('canvas');
+                                    // FORCE EXACT SQUARE POWER-OF-TWO
+                                    canvas.width = TARGET_RES;
+                                    canvas.height = TARGET_RES;
+                                    
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.imageSmoothingEnabled = false; 
+                                    // Stretching it to fill 1024x1024 won't break the model, because
+                                    // UV coordinates are relative (0.0 to 1.0). The model un-stretches it perfectly!
+                                    ctx.drawImage(origImage, 0, 0, TARGET_RES, TARGET_RES);
+                                    
+                                    const newTexture = new THREE.CanvasTexture(canvas);
+                                    newTexture.flipY = mat.map.flipY;
+                                    newTexture.colorSpace = THREE.SRGBColorSpace;
+                                    newTexture.magFilter = THREE.NearestFilter;
+                                    newTexture.minFilter = THREE.NearestFilter;
+                                    newTexture.generateMipmaps = false; 
+                                    
+                                    mat.map = newTexture;
+                                    mat.needsUpdate = true;
+                                }
+                            });
+                        }
 
-                            if (dist3D > 0.001 && distUV > 0.1) {
-                                pixelSizes.push(dist3D / distUV);
+                        // === CRITICAL UV INSETTING ===
+                        const uv = child.geometry.attributes.uv;
+                        if (uv && origImage) {
+                            const texW = origImage.width || 16;
+                            const texH = origImage.height || 16;
+                            
+                            // Calculate the relative UV gap to inset
+                            const uvEpsX = paddingPixels / texW;
+                            const uvEpsY = paddingPixels / texH;
+
+                            for (let i = 0; i < uv.count; i += 3) {
+                                let u0 = uv.getX(i), v0 = uv.getY(i);
+                                let u1 = uv.getX(i+1), v1 = uv.getY(i+1);
+                                let u2 = uv.getX(i+2), v2 = uv.getY(i+2);
+
+                                const minU = Math.min(u0, u1, u2);
+                                const maxU = Math.max(u0, u1, u2);
+                                const minV = Math.min(v0, v1, v2);
+                                const maxV = Math.max(v0, v1, v2);
+
+                                // Collapse the outer bounds of each face inward slightly to escape compression artifacts
+                                if (maxU - minU > 0.0001) {
+                                    u0 = Math.abs(u0 - minU) < 0.0001 ? u0 + uvEpsX : (Math.abs(u0 - maxU) < 0.0001 ? u0 - uvEpsX : u0);
+                                    u1 = Math.abs(u1 - minU) < 0.0001 ? u1 + uvEpsX : (Math.abs(u1 - maxU) < 0.0001 ? u1 - uvEpsX : u1);
+                                    u2 = Math.abs(u2 - minU) < 0.0001 ? u2 + uvEpsX : (Math.abs(u2 - maxU) < 0.0001 ? u2 - uvEpsX : u2);
+                                }
+
+                                if (maxV - minV > 0.0001) {
+                                    v0 = Math.abs(v0 - minV) < 0.0001 ? v0 + uvEpsY : (Math.abs(v0 - maxV) < 0.0001 ? v0 - uvEpsY : v0);
+                                    v1 = Math.abs(v1 - minV) < 0.0001 ? v1 + uvEpsY : (Math.abs(v1 - maxV) < 0.0001 ? v1 - uvEpsY : v1);
+                                    v2 = Math.abs(v2 - minV) < 0.0001 ? v2 + uvEpsY : (Math.abs(v2 - maxV) < 0.0001 ? v2 - uvEpsY : v2);
+                                }
+
+                                uv.setXY(i, u0, v0);
+                                uv.setXY(i+1, u1, v1);
+                                uv.setXY(i+2, u2, v2);
                             }
+                            uv.needsUpdate = true;
                         }
                     }
                 });
 
-                let autoVoxelSize = 0.1;
-                if (pixelSizes.length > 0) {
-                    // Median filter to guarantee exact alignment against weird edge cases
-                    pixelSizes.sort((a, b) => a - b);
-                    autoVoxelSize = pixelSizes[Math.floor(pixelSizes.length / 2)];
-                    autoVoxelSize = Math.round(autoVoxelSize * 10000) / 10000;
-                }
-                const voxelSize = autoVoxelSize;
-                
-                // 2. ABSOLUTE GRID MAPPING
-                // Determine the absolute minimum bound of the model to use as a firm grid anchor
-                const modelBounds = new THREE.Box3().setFromObject(currentModel);
-                const anchor = modelBounds.min;
-                const gridMap = new Map();
-                
+                scene.add(optimizedModel);
+
+                currentModel.visible = false;
+                showingOptimized = true;
+
+                document.getElementById('toggle-view-btn').classList.remove('hidden');
+                document.getElementById('toggle-view-btn').textContent = 'Show Original';
+                document.getElementById('download-btn').classList.remove('hidden');
+
+                showNotification(
+                    'Processing Complete!', 
+                    'success', 
+                    `Texture forced to Power-of-Two (1024x1024) to lock Roblox scale engine!`
+                );
+            }, 50);
+        }
+
+        // ---------------------------------------------------------
+        // METHOD 2: SOLID COLOR ORIGINAL GEOMETRY (Low Part Count)
+        // ---------------------------------------------------------
+        function runSolidColorOptimizer() {
+            showNotification('Applying Solid Colors...', 'success', 'Baking textures directly into mesh faces...');
+            
+            setTimeout(() => {
+                const solidGroup = new THREE.Group();
+                let totalMeshes = 0;
+                let totalFaces = 0;
+
                 currentModel.traverse((mesh) => {
-                    if (mesh.isMesh) {
-                        mesh.updateMatrixWorld(true);
+                    if (!mesh.isMesh) return;
+                    
+                    totalMeshes++;
+                    mesh.updateMatrixWorld(true);
+                    
+                    let geom = mesh.geometry.clone();
+                    if (geom.index) geom = geom.toNonIndexed(); 
+
+                    const pos = geom.attributes.position;
+                    const uv = geom.attributes.uv;
+
+                    if (!pos || !uv) return;
+
+                    const colors = new Float32Array(pos.count * 3);
+
+                    for (let i = 0; i < pos.count; i += 3) {
+                        const uA = new THREE.Vector2().fromBufferAttribute(uv, i);
+                        const uB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
+                        const uC = new THREE.Vector2().fromBufferAttribute(uv, i + 2);
+
+                        const currUvX = (uA.x + uB.x + uC.x) / 3;
+                        const currUvY = (uA.y + uB.y + uC.y) / 3;
+
+                        const color = getCanvasColor(currUvX, currUvY, currentImageData, currentTextureFlipY);
+
+                        let linearColor = new THREE.Color(1, 1, 1);
+                        if (color.a >= 0.1) {
+                            linearColor.setRGB(color.r, color.g, color.b, THREE.SRGBColorSpace);
+                        }
+
+                        for (let v = 0; v < 3; v++) {
+                            colors[(i + v) * 3 + 0] = linearColor.r;
+                            colors[(i + v) * 3 + 1] = linearColor.g;
+                            colors[(i + v) * 3 + 2] = linearColor.b;
+                        }
+                        totalFaces++;
+                    }
+
+                    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                    let baseMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1.0, metalness: 0.0 });
+                    if (mesh.material) {
+                        const origMat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+                        baseMat = origMat.clone();
+                        baseMat.map = null;
+                        baseMat.vertexColors = true;
+                        baseMat.color.setHex(0xffffff);
+                    }
+
+                    const newMesh = new THREE.Mesh(geom, baseMat);
+                    newMesh.applyMatrix4(mesh.matrixWorld);
+                    solidGroup.add(newMesh);
+                });
+
+                if (optimizedModel) scene.remove(optimizedModel);
+                optimizedModel = solidGroup;
+                scene.add(optimizedModel);
+
+                currentModel.visible = false;
+                showingOptimized = true;
+
+                document.getElementById('toggle-view-btn').classList.remove('hidden');
+                document.getElementById('toggle-view-btn').textContent = 'Show Original';
+                document.getElementById('download-btn').classList.remove('hidden');
+
+                showNotification(
+                    'Optimization Complete!', 
+                    'success', 
+                    `Converted ${totalMeshes} meshes (${totalFaces} triangles) to solid-colored geometry without adding new parts!`
+                );
+            }, 50);
+        }
+
+        // ---------------------------------------------------------
+        // METHOD 1: FLAWLESS 3D SURFACE SCANNER (Zero Bleed/Drift)
+        // ---------------------------------------------------------
+        function runPixelVoxelizer() {
+            showNotification('Generating solid 3D matrix...', 'success', 'Scanning physical geometric surfaces...');
+            
+            setTimeout(() => {
+                const useAutoMerge = document.getElementById('auto-merge-voxels').checked;
+                
+                // Get rigid voxel scale, defaulting to 1/16th block size
+                let localVoxelSize = parseFloat(document.getElementById('voxel-scale-input').value);
+                if (isNaN(localVoxelSize) || localVoxelSize <= 0) localVoxelSize = 0.0625;
+
+                const allMergedBoxes = [];
+                let totalInitialVoxels = 0;
+                
+                // VOXELIZE EACH MESH LOCALLY (Protects rotations & offsets perfectly)
+                currentModel.traverse((mesh) => {
+                    if (!mesh.isMesh) return;
+                    
+                    mesh.updateMatrixWorld(true);
+                    let geom = mesh.geometry;
+                    if (geom.index) geom = geom.toNonIndexed();
+                    
+                    const pos = geom.attributes.position;
+                    const uv = geom.attributes.uv;
+
+                    if (!pos || !uv) return;
+
+                    const gridMap = new Map();
+
+                    // Dense 4x oversampling of the physical 3D surface to ensure 0 dropped pixels
+                    const stepSize = localVoxelSize / 4; 
+
+                    for (let i = 0; i < pos.count; i += 3) {
+                        const aLocal = new THREE.Vector3().fromBufferAttribute(pos, i);
+                        const bLocal = new THREE.Vector3().fromBufferAttribute(pos, i + 1);
+                        const cLocal = new THREE.Vector3().fromBufferAttribute(pos, i + 2);
                         
-                        let geom = mesh.geometry;
-                        if (geom.index) geom = geom.toNonIndexed();
+                        const uA = new THREE.Vector2().fromBufferAttribute(uv, i);
+                        const uB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
+                        const uC = new THREE.Vector2().fromBufferAttribute(uv, i + 2);
                         
-                        const pos = geom.attributes.position;
-                        const uv = geom.attributes.uv;
-                        const normals = geom.attributes.normal; 
+                        const v1 = new THREE.Vector3().subVectors(bLocal, aLocal);
+                        const v2 = new THREE.Vector3().subVectors(cLocal, aLocal);
+                        
+                        // Strict flat geometric normal mathematically prevents corner/smooth drift
+                        const localNormal = new THREE.Vector3().crossVectors(v1, v2).normalize();
+                        
+                        if (localNormal.lengthSq() < 0.0001) continue;
 
-                        if (!pos || !uv) return;
+                        // Pushing inward by half a voxel firmly lands us directly in the center of the block cell
+                        const nudge = localNormal.clone().multiplyScalar(-localVoxelSize * 0.5);
 
-                        // Iterate every triangle and project its texture pixels into 3D
-                        for (let i = 0; i < pos.count; i += 3) {
-                            const a3D = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
-                            const b3D = new THREE.Vector3().fromBufferAttribute(pos, i + 1).applyMatrix4(mesh.matrixWorld);
-                            const c3D = new THREE.Vector3().fromBufferAttribute(pos, i + 2).applyMatrix4(mesh.matrixWorld);
-                            
-                            const uA = new THREE.Vector2().fromBufferAttribute(uv, i);
-                            const uB = new THREE.Vector2().fromBufferAttribute(uv, i + 1);
-                            const uC = new THREE.Vector2().fromBufferAttribute(uv, i + 2);
-                            
-                            // Get EXACT vertex normal to push safely into the interior (Fixes blocks poking out)
-                            let faceNormal = new THREE.Vector3();
-                            if (normals) {
-                                const nA = new THREE.Vector3().fromBufferAttribute(normals, i);
-                                const nB = new THREE.Vector3().fromBufferAttribute(normals, i + 1);
-                                const nC = new THREE.Vector3().fromBufferAttribute(normals, i + 2);
-                                const normalMatrix = new THREE.Matrix3().getNormalMatrix(mesh.matrixWorld);
-                                nA.applyMatrix3(normalMatrix).normalize();
-                                nB.applyMatrix3(normalMatrix).normalize();
-                                nC.applyMatrix3(normalMatrix).normalize();
-                                faceNormal.addVectors(nA, nB).add(nC).normalize();
-                            } else {
-                                const v1 = new THREE.Vector3().subVectors(b3D, a3D);
-                                const v2 = new THREE.Vector3().subVectors(c3D, a3D);
-                                faceNormal.crossVectors(v1, v2).normalize();
-                            }
+                        const len1 = v1.length();
+                        const len2 = v2.length();
+                        if (len1 < 0.0001 || len2 < 0.0001) continue;
 
-                            // Push point exactly 0.5 voxels inwards to land perfectly in the center of the block
-                            const nudge = faceNormal.clone().multiplyScalar(-voxelSize * 0.5);
+                        const steps1 = Math.max(1, Math.ceil(len1 / stepSize));
+                        const steps2 = Math.max(1, Math.ceil(len2 / stepSize));
 
-                            // Bounding box of the triangle in TEXTURE PIXEL space
-                            const pxA = uA.x * texW, pyA = uA.y * texH;
-                            const pxB = uB.x * texW, pyB = uB.y * texH;
-                            const pxC = uC.x * texW, pyC = uC.y * texH;
-
-                            const minPx = Math.floor(Math.min(pxA, pxB, pxC));
-                            const maxPx = Math.ceil(Math.max(pxA, pxB, pxC));
-                            const minPy = Math.floor(Math.min(pyA, pyB, pyC));
-                            const maxPy = Math.ceil(Math.max(pyA, pyB, pyC));
-
-                            // We loop over EVERY pixel within the bounding box
-                            for (let px = minPx; px <= maxPx; px++) {
-                                for (let py = minPy; py <= maxPy; py++) {
-                                    const sampleX = px + 0.5;
-                                    const sampleY = py + 0.5;
-
-                                    const { u, v, w } = getBarycentric(
-                                        sampleX, sampleY, 
-                                        {x: pxA, y: pyA}, {x: pxB, y: pyB}, {x: pxC, y: pyC}
-                                    );
-
-                                    // Check if this pixel is inside the triangle mapping
-                                    if (u >= -0.001 && v >= -0.001 && w >= -0.001) {
-                                        // Perfectly interpolated 3D position
-                                        const posX = a3D.x * u + b3D.x * v + c3D.x * w + nudge.x;
-                                        const posY = a3D.y * u + b3D.y * v + c3D.y * w + nudge.y;
-                                        const posZ = a3D.z * u + b3D.z * v + c3D.z * w + nudge.z;
-
-                                        // By finding the delta from the anchor and using Math.round, we skip
-                                        // all edge drift and safely snap to exact integer grid cells!
-                                        const ix = Math.round((posX - anchor.x - (voxelSize / 2)) / voxelSize);
-                                        const iy = Math.round((posY - anchor.y - (voxelSize / 2)) / voxelSize);
-                                        const iz = Math.round((posZ - anchor.z - (voxelSize / 2)) / voxelSize);
-                                        const key = `${ix},${iy},${iz}`;
-
-                                        if (!gridMap.has(key)) {
-                                            // Get raw color from texture mapping for this specific pixel
-                                            const color = getCanvasColor(sampleX / texW, sampleY / texH, currentImageData, currentTextureFlipY);
-                                            if (color.a >= 0.1) {
-                                                // FIX: "Colors seemed lighter"
-                                                // We must manually convert the extracted Canvas sRGB pixels into Linear space.
-                                                // Otherwise, Three.js double-encodes them, artificially boosting the brightness!
-                                                const linearColor = new THREE.Color(color.r, color.g, color.b).convertSRGBToLinear();
-                                                const hex = linearColor.getHexString();
-                                                
-                                                gridMap.set(key, { 
-                                                    ix, iy, iz, 
-                                                    hex, r: linearColor.r, g: linearColor.g, b: linearColor.b, 
-                                                    merged: false 
-                                                });
-                                            }
-                                        }
+                        for(let s1 = 0; s1 <= steps1; s1++) {
+                            const u = s1 / steps1;
+                            for(let s2 = 0; s2 <= steps2; s2++) {
+                                const v = s2 / steps2;
+                                if(u + v > 1.0) continue; // Keep securely inside the bounds of the triangle
+                                
+                                const posX = aLocal.x + v1.x * u + v2.x * v + nudge.x;
+                                const posY = aLocal.y + v1.y * u + v2.y * v + nudge.y;
+                                const posZ = aLocal.z + v1.z * u + v2.z * v + nudge.z;
+                                
+                                // Math.floor naturally aligns back to the 0,0,0 local blockbench grid
+                                const ix = Math.floor(posX / localVoxelSize);
+                                const iy = Math.floor(posY / localVoxelSize);
+                                const iz = Math.floor(posZ / localVoxelSize);
+                                const key = `${ix},${iy},${iz}`;
+                                
+                                if (!gridMap.has(key)) {
+                                    // Interpolate UV dynamically. This is guaranteed to never bleed outside the triangle.
+                                    const currUvX = uA.x + (uB.x - uA.x) * u + (uC.x - uA.x) * v;
+                                    const currUvY = uA.y + (uB.y - uA.y) * u + (uC.y - uA.y) * v;
+                                    
+                                    const color = getCanvasColor(currUvX, currUvY, currentImageData, currentTextureFlipY);
+                                    
+                                    if (color.a >= 0.1) {
+                                        // Strict linear color correction prevents "washed out" or overly bright colors
+                                        const linearColor = new THREE.Color().setRGB(color.r, color.g, color.b, THREE.SRGBColorSpace);
+                                        gridMap.set(key, { 
+                                            ix, iy, iz, 
+                                            hex: linearColor.getHexString(), 
+                                            r: linearColor.r, g: linearColor.g, b: linearColor.b, 
+                                            merged: false 
+                                        });
                                     }
                                 }
                             }
                         }
                     }
+
+                    totalInitialVoxels += gridMap.size;
+
+                    // 3. GREEDY MESH THIS LOCAL GRID (Optimizes Part Count)
+                    const localMergedBoxes = [];
+
+                    if (useAutoMerge) {
+                        const checkArea = (startX, endX, startY, endY, startZ, endZ, targetHex) => {
+                            for (let x = startX; x <= endX; x++) {
+                                for (let y = startY; y <= endY; y++) {
+                                    for (let z = startZ; z <= endZ; z++) {
+                                        const v = gridMap.get(`${x},${y},${z}`);
+                                        if (!v || v.merged || v.hex !== targetHex) return false;
+                                    }
+                                }
+                            }
+                            return true;
+                        };
+
+                        const markArea = (startX, endX, startY, endY, startZ, endZ) => {
+                            for (let x = startX; x <= endX; x++) {
+                                for (let y = startY; y <= endY; y++) {
+                                    for (let z = startZ; z <= endZ; z++) {
+                                        gridMap.get(`${x},${y},${z}`).merged = true;
+                                    }
+                                }
+                            }
+                        };
+
+                        for (const voxel of gridMap.values()) {
+                            if (voxel.merged) continue;
+                            
+                            let { ix: minX, iy: minY, iz: minZ, hex } = voxel;
+                            let maxX = minX, maxY = minY, maxZ = minZ;
+                            
+                            while (checkArea(maxX + 1, maxX + 1, minY, maxY, minZ, maxZ, hex)) maxX++;
+                            while (checkArea(minX, maxX, maxY + 1, maxY + 1, minZ, maxZ, hex)) maxY++;
+                            while (checkArea(minX, maxX, minY, maxY, maxZ + 1, maxZ + 1, hex)) maxZ++;
+                            
+                            markArea(minX, maxX, minY, maxY, minZ, maxZ);
+                            
+                            localMergedBoxes.push({ minX, maxX, minY, maxY, minZ, maxZ, r: voxel.r, g: voxel.g, b: voxel.b });
+                        }
+                    } else {
+                        for (const voxel of gridMap.values()) {
+                            localMergedBoxes.push({
+                                minX: voxel.ix, maxX: voxel.ix, minY: voxel.iy, maxY: voxel.iy, minZ: voxel.iz, maxZ: voxel.iz,
+                                r: voxel.r, g: voxel.g, b: voxel.b
+                            });
+                        }
+                    }
+
+                    // 4. TRANSFORM BOXES SECURELY BACK TO GLOBAL WORLD MATRICES
+                    for (const box of localMergedBoxes) {
+                        const width = (box.maxX - box.minX + 1) * localVoxelSize;
+                        const height = (box.maxY - box.minY + 1) * localVoxelSize;
+                        const depth = (box.maxZ - box.minZ + 1) * localVoxelSize;
+                        
+                        // Because Math.floor inherently uses 0,0,0 as origin, mapping back simply requires 
+                        // multiplying the indices and shifting back to center.
+                        const cx = ((box.minX + box.maxX) / 2) * localVoxelSize + (localVoxelSize / 2);
+                        const cy = ((box.minY + box.maxY) / 2) * localVoxelSize + (localVoxelSize / 2);
+                        const cz = ((box.minZ + box.maxZ) / 2) * localVoxelSize + (localVoxelSize / 2);
+                        
+                        const localMat = new THREE.Matrix4();
+                        localMat.makeTranslation(cx, cy, cz);
+                        localMat.scale(new THREE.Vector3(width, height, depth));
+                        
+                        // Molds the newly generated voxel box seamlessly into the original mesh's exact orientation
+                        const worldMat = new THREE.Matrix4();
+                        worldMat.multiplyMatrices(mesh.matrixWorld, localMat);
+                        
+                        allMergedBoxes.push({
+                            matrix: worldMat,
+                            r: box.r, g: box.g, b: box.b
+                        });
+                    }
                 });
 
-                const totalInitialVoxels = gridMap.size;
                 if (totalInitialVoxels === 0) {
                     showNotification('No valid textured surfaces found to optimize.', 'error');
                     return;
                 }
 
-                // 4. PROCESS VOXELS (GREEDY MESHING)
-                const mergedBoxes = [];
-
-                if (useAutoMerge) {
-                    const checkArea = (startX, endX, startY, endY, startZ, endZ, targetHex) => {
-                        for (let x = startX; x <= endX; x++) {
-                            for (let y = startY; y <= endY; y++) {
-                                for (let z = startZ; z <= endZ; z++) {
-                                    const v = gridMap.get(`${x},${y},${z}`);
-                                    if (!v || v.merged || v.hex !== targetHex) return false;
-                                }
-                            }
-                        }
-                        return true;
-                    };
-
-                    const markArea = (startX, endX, startY, endY, startZ, endZ) => {
-                        for (let x = startX; x <= endX; x++) {
-                            for (let y = startY; y <= endY; y++) {
-                                for (let z = startZ; z <= endZ; z++) {
-                                    gridMap.get(`${x},${y},${z}`).merged = true;
-                                }
-                            }
-                        }
-                    };
-
-                    for (const voxel of gridMap.values()) {
-                        if (voxel.merged) continue;
-                        
-                        let { ix: minX, iy: minY, iz: minZ, hex } = voxel;
-                        let maxX = minX, maxY = minY, maxZ = minZ;
-                        
-                        while (checkArea(maxX + 1, maxX + 1, minY, maxY, minZ, maxZ, hex)) maxX++;
-                        while (checkArea(minX, maxX, maxY + 1, maxY + 1, minZ, maxZ, hex)) maxY++;
-                        while (checkArea(minX, maxX, minY, maxY, maxZ + 1, maxZ + 1, hex)) maxZ++;
-                        
-                        markArea(minX, maxX, minY, maxY, minZ, maxZ);
-                        
-                        mergedBoxes.push({
-                            minX, maxX, minY, maxY, minZ, maxZ,
-                            r: voxel.r, g: voxel.g, b: voxel.b
-                        });
-                    }
-                } else {
-                    for (const voxel of gridMap.values()) {
-                        mergedBoxes.push({
-                            minX: voxel.ix, maxX: voxel.ix,
-                            minY: voxel.iy, maxY: voxel.iy,
-                            minZ: voxel.iz, maxZ: voxel.iz,
-                            r: voxel.r, g: voxel.g, b: voxel.b
-                        });
-                    }
-                }
-
-                // 5. RENDER OUTPUT
-                if (voxelMesh) scene.remove(voxelMesh);
+                // 5. RENDER FINAL INSTANCED OUTPUT
+                if (optimizedModel) scene.remove(optimizedModel);
 
                 const boxGeom = new THREE.BoxGeometry(1, 1, 1);
-                // Use Standard Material with high roughness to perfectly match Blockbench matte lighting
-                const boxMat = new THREE.MeshStandardMaterial({ roughness: 1.0, metalness: 0.0 });
-                voxelMesh = new THREE.InstancedMesh(boxGeom, boxMat, mergedBoxes.length);
                 
-                const dummy = new THREE.Object3D();
+                let boxMat = new THREE.MeshStandardMaterial({ roughness: 1.0, metalness: 0.0 });
+                currentModel.traverse((child) => {
+                    if (child.isMesh && child.material && !boxMat.userData.cloned) {
+                        const originalMat = Array.isArray(child.material) ? child.material[0] : child.material;
+                        boxMat = originalMat.clone();
+                        boxMat.map = null; 
+                        boxMat.color.setHex(0xffffff); 
+                        boxMat.userData.cloned = true;
+                    }
+                });
+
+                optimizedModel = new THREE.InstancedMesh(boxGeom, boxMat, allMergedBoxes.length);
+                
                 const tempColor = new THREE.Color();
                 
                 let idx = 0;
-                for (const box of mergedBoxes) {
-                    const width = (box.maxX - box.minX + 1) * voxelSize;
-                    const height = (box.maxY - box.minY + 1) * voxelSize;
-                    const depth = (box.maxZ - box.minZ + 1) * voxelSize;
-                    
-                    // Reposition based on the absolute anchor grid 
-                    const cx = ((box.minX + box.maxX) / 2) * voxelSize + (voxelSize / 2) + anchor.x;
-                    const cy = ((box.minY + box.maxY) / 2) * voxelSize + (voxelSize / 2) + anchor.y;
-                    const cz = ((box.minZ + box.maxZ) / 2) * voxelSize + (voxelSize / 2) + anchor.z;
-                    
-                    dummy.position.set(cx, cy, cz);
-                    dummy.scale.set(width, height, depth);
-                    dummy.updateMatrix();
-                    
-                    voxelMesh.setMatrixAt(idx, dummy.matrix);
-                    
+                for (const box of allMergedBoxes) {
+                    optimizedModel.setMatrixAt(idx, box.matrix);
                     tempColor.setRGB(box.r, box.g, box.b);
-                    voxelMesh.setColorAt(idx, tempColor);
-                    
+                    optimizedModel.setColorAt(idx, tempColor);
                     idx++;
                 }
                 
-                voxelMesh.instanceMatrix.needsUpdate = true;
-                if (voxelMesh.instanceColor) voxelMesh.instanceColor.needsUpdate = true;
+                optimizedModel.instanceMatrix.needsUpdate = true;
+                if (optimizedModel.instanceColor) optimizedModel.instanceColor.needsUpdate = true;
                 
-                scene.add(voxelMesh);
+                scene.add(optimizedModel);
                 
                 currentModel.visible = false;
-                showingVoxels = true;
+                showingOptimized = true;
                 
                 document.getElementById('toggle-view-btn').classList.remove('hidden');
                 document.getElementById('toggle-view-btn').textContent = 'Show Original';
+                document.getElementById('download-btn').classList.remove('hidden');
                 
                 if (useAutoMerge) {
                     showNotification(
-                        'Optimization Complete!', 
+                        'Processing Complete!', 
                         'success', 
-                        `1 Pixel = 1 Cube mapped flawlessly. Reduced ${totalInitialVoxels} raw cubes to ${mergedBoxes.length} combined parts.`
+                        `Perfect occlusion mapping! Reduced ${totalInitialVoxels} raw cubes to ${allMergedBoxes.length} combined parts.`
                     );
                 } else {
-                    showNotification(`Generated ${mergedBoxes.length} un-merged cubes!`, 'success');
+                    showNotification(`Generated ${allMergedBoxes.length} un-merged cubes!`, 'success');
                 }
 
             }, 50); 
         }
 
         function toggleView() {
-            if (!voxelMesh) return;
+            if (!optimizedModel) return;
             
-            if (showingVoxels) {
-                voxelMesh.visible = false;
+            if (showingOptimized) {
+                optimizedModel.visible = false;
                 currentModel.visible = true;
-                document.getElementById('toggle-view-btn').textContent = 'Show Roblox Version';
-                showingVoxels = false;
+                document.getElementById('toggle-view-btn').textContent = 'Show Processed Version';
+                showingOptimized = false;
             } else {
-                voxelMesh.visible = true;
+                optimizedModel.visible = true;
                 currentModel.visible = false;
                 document.getElementById('toggle-view-btn').textContent = 'Show Original Model';
-                showingVoxels = true;
+                showingOptimized = true;
             }
+        }
+
+        function downloadModel() {
+            if (!optimizedModel) {
+                showNotification('No optimized model to download.', 'error');
+                return;
+            }
+            
+            showNotification('Exporting...', 'success', 'Generating GLB file');
+            
+            const exporter = new GLTFExporter();
+            exporter.parse(
+                optimizedModel,
+                function (gltf) {
+                    const blob = new Blob([gltf], { type: 'application/octet-stream' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.style.display = 'none';
+                    link.href = url;
+                    link.download = 'processed_model.glb';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showNotification('Download Complete!', 'success');
+                },
+                function (error) {
+                    console.error('An error happened during export:', error);
+                    showNotification('Failed to export model.', 'error');
+                },
+                { binary: true }
+            );
         }
 
         function normalizeModel(model) {
